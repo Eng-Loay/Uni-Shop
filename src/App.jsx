@@ -1,10 +1,19 @@
 import "./App.css";
+import Fotter from "./components/Fotter/fotter";
+import Navbar from "./components/Header/Navbar";
+import Leading from "./UI/Landing/landing";
+import Packages from "./UI/Packages/Packages";
+import Slider from "./UI/Slider/Slider";
 
 function App() {
   return (
-    <div className="bg-red-500 p-4">
-      <p className="text-white">Hello</p>
-    </div>
+    <>
+      <Navbar />
+      <Leading />
+      <Packages />
+      <Slider />
+      <Fotter />
+    </>
   );
 }
 
