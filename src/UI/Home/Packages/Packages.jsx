@@ -1,7 +1,7 @@
-import arrow from "../../assets/Home/Packages/arrow.svg";
-import eng from "../../assets/Home/Packages/Eng-icon.gif"; // Engineering GIF
-import arts from "../../assets/Home/Packages/artist-icon.gif"; // Arts GIF
-import sci from "../../assets/Home/Packages/sci-icon.gif"; // Science GIF
+import arrow from "../../../assets/Home/Packages/arrow.svg";
+import eng from "../../../assets/Home/Packages/Eng-icon.gif"; // Engineering GIF
+import arts from "../../../assets/Home/Packages/artist-icon.gif"; // Arts GIF
+import sci from "../../../assets/Home/Packages/sci-icon.gif"; // Science GIF
 
 function Packages() {
   return (

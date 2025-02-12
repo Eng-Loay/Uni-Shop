@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
-import chm from "../../assets/Home/Slider/chemicals.svg"; // Replace with your first image path
-import sales from "../../assets/Home/Slider/sales.svg"; // Replace with your second image path
+import chm from "../../../assets/Home/Slider/chemicals.svg"; // Replace with your first image path
+import sales from "../../../assets/Home/Slider/sales.svg"; // Replace with your second image path
 
 function Slider() {
   const [currentSlide, setCurrentSlide] = useState(0); // Track the current slide
