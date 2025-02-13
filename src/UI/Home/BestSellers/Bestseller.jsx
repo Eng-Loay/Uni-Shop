@@ -10,7 +10,7 @@ function Bestseller() {
     <div className="m-0 p-0 flex flex-col items-start w-full mb-40">
       {/* Header Section */}
       <div className="flex items-center pl-[5%] lg:pl-[300px] mt-5">
-        <p className="text-[#3E3B3B] text-[24px] lg:text-[28px] font-bold p-5 m-0">
+        <p className="text-[#3E3B3B] text-[20px] lg:text-[28px] font-sans p-5 m-0">
           BEST SELLER PRODUCTS
         </p>
         <img src={arrow} alt="arrow icon" className="w-6 h-6 mr-2.5" />
