@@ -17,7 +17,7 @@ function Bestseller() {
       </div>
 
       {/* Product Grid */}
-      <div className="mt-20 ml-4 lg:ml-[200px] flex flex-row flex-wrap justify-center lg:justify-start gap-8">
+      <div className="mt-20 px-20 ml-4 lg:ml-[200px] flex flex-row flex-wrap justify-center lg:justify-start gap-8">
         {/* First Image and Text */}
         <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
           <img src={pencil} alt="Example Image" className="w-3/4 h-auto" />

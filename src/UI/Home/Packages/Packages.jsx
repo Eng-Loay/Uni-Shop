@@ -15,7 +15,7 @@ function Packages() {
       </div>
 
       {/* Categories div */}
-      <div className="mx-auto mt-2.5 pl-5 flex flex-wrap justify-center gap-5">
+      <div className="mx-auto mt-2.5 pl-5 flex flex-wrap justify-center gap-28">
         <div className="flex flex-col items-center gap-2.5">
           <img
             src={eng}
