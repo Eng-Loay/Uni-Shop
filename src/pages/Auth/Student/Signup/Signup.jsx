@@ -310,20 +310,29 @@ function Signup() {
                   <option value="" disabled className="bg-gray-900">
                     Select your faculty
                   </option>
+                  <option value="Architecture" className="bg-gray-900">
+                    Architecture
+                  </option>
+                  <option value="Arts" className="bg-gray-900">
+                    Arts
+                  </option>
+                  <option value="Dentistry" className="bg-gray-900">
+                    Dentistry
+                  </option>
                   <option value="Engineering" className="bg-gray-900">
                     Engineering
                   </option>
                   <option value="Medicine" className="bg-gray-900">
                     Medicine
                   </option>
+                  <option value="Pharmacy" className="bg-gray-900">
+                    Pharmacy
+                  </option>
                   <option value="Science" className="bg-gray-900">
                     Science
                   </option>
-                  <option value="Business" className="bg-gray-900">
-                    Business
-                  </option>
-                  <option value="Arts" className="bg-gray-900">
-                    Arts
+                  <option value="Veterinary Medicine" className="bg-gray-900">
+                    Veterinary Medicine
                   </option>
                 </select>
                 <GraduationCap
