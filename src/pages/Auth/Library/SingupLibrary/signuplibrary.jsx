@@ -379,9 +379,7 @@ function SignupLibrary() {
                   ) : (
                     <>
                       <span>
-                        {currentStep === 3
-                          ? "Complete Registration"
-                          : "Continue"}
+                        {currentStep === 3 ? "Registration" : "Continue"}
                       </span>
                       <ArrowRight size={18} />
                     </>
