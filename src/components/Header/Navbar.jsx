@@ -213,6 +213,7 @@ function Navbar() {
               <>
                 <NavLink
                   to="/login"
+                  onClick={closeMenu}
                   className={({ isActive }) =>
                     `text-white text-center font-bold block mb-4 hover:bg-[#003366] transition-colors duration-200 p-2 rounded ${
                       isActive ? "bg-[#003366]" : ""
@@ -223,6 +224,7 @@ function Navbar() {
                 </NavLink>
                 <NavLink
                   to="/signup"
+                  onClick={closeMenu}
                   className={({ isActive }) =>
                     `text-white text-center font-bold block hover:bg-[#003366] transition-colors duration-200 p-2 rounded ${
                       isActive ? "bg-[#003366]" : ""
