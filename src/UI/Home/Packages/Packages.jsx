@@ -8,7 +8,10 @@ function Packages() {
     <div className="m-0 p-0 flex flex-col items-start w-full">
       {/* Group "PACKAGES" and the arrow icon into one div */}
       <div className="flex items-center pl-[5%] lg:pl-[300px] mt-5">
-        <p className="text-[#3E3B3B] text-[24px] lg:text-[28px] font-sans p-5 m-0">
+        <p
+          className="text-[#3E3B3B] text-[24px] lg:text-[28px] font-inter p-5 m-0 "
+          style={{ fontFamily: "Inter" }}
+        >
           PACKAGES
         </p>
         <img src={arrow} alt="arrow icon" className="w-6 h-6 mr-2.5" />
@@ -22,7 +25,10 @@ function Packages() {
             alt="Engineering GIF"
             className="w-[150px] h-[150px] lg:w-[250px] lg:h-[250px]"
           />
-          <p className="text-[16px] lg:text-[20px] px-5 py-2.5 bg-[#D6DDEBA8] rounded-lg font-bold text-black">
+          <p
+            className="text-[16px] lg:text-[20px] px-5 py-2.5 bg-[#D6DDEBA8] rounded-lg font-bold text-black"
+            style={{ fontFamily: "Inter" }}
+          >
             Engineering tools
           </p>
         </div>
@@ -32,7 +38,10 @@ function Packages() {
             alt="Arts GIF"
             className="w-[150px] h-[150px] lg:w-[250px] lg:h-[250px]"
           />
-          <p className="text-[16px] lg:text-[20px] px-5 py-2.5 bg-[#D6DDEBA8] rounded-lg font-bold text-black">
+          <p
+            className="text-[16px] lg:text-[20px] px-5 py-2.5 bg-[#D6DDEBA8] rounded-lg font-bold text-black"
+            style={{ fontFamily: "Inter" }}
+          >
             Fine arts tools
           </p>
         </div>
@@ -42,7 +51,10 @@ function Packages() {
             alt="Science GIF"
             className="w-[150px] h-[150px] lg:w-[250px] lg:h-[250px]"
           />
-          <p className="text-[16px] lg:text-[20px] px-5 py-2.5 bg-[#D6DDEBA8] rounded-lg font-bold text-black">
+          <p
+            className="text-[16px] lg:text-[20px] px-5 py-2.5 bg-[#D6DDEBA8] rounded-lg font-bold text-black"
+            style={{ fontFamily: "Inter" }}
+          >
             Science tools
           </p>
         </div>

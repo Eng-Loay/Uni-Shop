@@ -3,6 +3,7 @@ import Instagram from "../../assets/Fotter/Instgram.svg";
 import Tiktok from "../../assets/Fotter/TikTok.svg";
 import Phone from "../../assets/Fotter/Phone.svg";
 import Email from "../../assets/Fotter/Email.svg";
+import { NavLink } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -53,12 +54,12 @@ const Footer = () => {
 
       {/* Join as Library Link */}
       <div className="text-center mt-6">
-        <a
-          href="#"
+        <NavLink
+          to="/signuplibrary"
           className="text-sm text-gray-300 hover:text-white underline"
         >
           Join as Library
-        </a>
+        </NavLink>
       </div>
 
       {/* Copyright Section */}
