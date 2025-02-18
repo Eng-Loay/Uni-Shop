@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavLink } from "react-router-dom";
-import { Mail, ArrowRightCircle, BookOpen } from "lucide-react";
+import { Mail, ArrowRightCircle, Library } from "lucide-react";
 
 function ForgotPasswordLibrary() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +72,7 @@ function ForgotPasswordLibrary() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
-                      placeholder="john.doe@example.com"
+                      placeholder="library@example.com"
                       required
                     />
                     <Mail
@@ -132,7 +132,7 @@ function ForgotPasswordLibrary() {
                       animate={{ scale: 1 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <BookOpen className="w-full h-full" />
+                      <Library className="w-full h-full" />
                     </motion.div>
                     <motion.h3
                       className="text-2xl font-bold text-white mb-2"
