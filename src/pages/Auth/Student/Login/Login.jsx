@@ -91,7 +91,7 @@ function Login() {
                         value={formData.email}
                         onChange={handleInputChange}
                         className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
-                        placeholder="john.doe@example.com"
+                        placeholder="loayessam@example.com"
                         required
                       />
                       <Mail
