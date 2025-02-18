@@ -447,9 +447,7 @@ function Signup() {
                     <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span>
-                        {currentStep === 3 ? "Complete Sign Up" : "Continue"}
-                      </span>
+                      <span>{currentStep === 3 ? "Sign Up" : "Continue"}</span>
 
                       <ArrowRight size={18} />
                     </>
