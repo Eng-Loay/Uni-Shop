@@ -1,23 +1,66 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect } from "react";
-import chm from "../../../assets/Home/Slider/chemicals.svg"; // Replace with your first image path
-import sales from "../../../assets/Home/Slider/sales.svg"; // Replace with your second image path
+import { useState, useEffect, useRef } from "react";
+import sales2 from "../../../assets/Home/Slider/sales2.jpg";
+import sales from "../../../assets/Home/Slider/sales.jpg";
 
 function Slider() {
-  const [currentSlide, setCurrentSlide] = useState(0); // Track the current slide
-  const images = [chm, sales]; // Array of images
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const images = [sales2, sales];
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+  const autoSlideInterval = useRef(null);
 
-  // Automatically switch slides every 5 seconds
+  // Function to handle automatic sliding
+  const startAutoSlide = () => {
+    autoSlideInterval.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % images.length);
+    }, 5000);
+  };
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide === 0 ? 1 : 0));
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval); // Cleanup interval on unmount
+    startAutoSlide();
+    return () => clearInterval(autoSlideInterval.current);
   }, []);
 
+  // Handle touch start
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  // Handle touch move
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  // Handle touch end (swipe logic)
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const deltaX = touchStartX.current - touchEndX.current;
+
+    if (deltaX > 50) {
+      // Swipe Left (Next Slide)
+      setCurrentSlide((prev) => (prev + 1) % images.length);
+    } else if (deltaX < -50) {
+      // Swipe Right (Previous Slide)
+      setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
+    }
+
+    // Reset touch values
+    touchStartX.current = null;
+    touchEndX.current = null;
+
+    // Restart auto-slide
+    clearInterval(autoSlideInterval.current);
+    startAutoSlide();
+  };
+
   return (
-    <div className="w-full max-w-[90%] lg:max-w-[800px] h-[300px] lg:h-[500px] mt-[50px] mx-auto overflow-hidden relative">
+    <div
+      className="w-full max-w-[700px] h-auto aspect-[1298/846] mt-[50px] mx-auto overflow-hidden relative"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div
         className="flex transition-transform duration-500 ease-in-out w-[200%] h-full"
         style={{ transform: `translateX(-${currentSlide * 50}%)` }}
@@ -27,7 +70,7 @@ function Slider() {
             key={index}
             src={image}
             alt={`Slide ${index + 1}`}
-            className="w-1/2 h-full flex-shrink-0 object-contain"
+            className="w-1/2 h-full flex-shrink-0 object-cover"
           />
         ))}
       </div>

@@ -1,17 +1,27 @@
 import { useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom"; // Import NavLink
+import { NavLink } from "react-router-dom";
 import searchIcon from "../../assets/Header/search-icon.svg";
 import fav from "../../assets/Header/favoritte.svg";
 import hug from "../../assets/Header/hug.svg";
 import cart from "../../assets/Header/cart.svg";
 import logo from "../../assets/Header/UNI SHOP logo.svg";
+import profileIcon from "../../assets/Header/hug.svg";
+import homeIcon from "../../assets/Header/home.svg";
+import privacyIcon from "../../assets/Header/privacy.svg";
+import helpIcon from "../../assets/Header/help.svg";
+import languageIcon from "../../assets/Header/language.svg";
+import logoutIcon from "../../assets/Header/logout.svg";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 860);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
   const sidebarRef = useRef(null);
   const hamburgerRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -21,7 +31,6 @@ function Navbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Disable scroll behind the sidebar when it's open
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
@@ -35,23 +44,21 @@ function Navbar() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target) &&
-        hamburgerRef.current &&
-        !hamburgerRef.current.contains(event.target)
-      ) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
         closeMenu();
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
       }
     };
 
-    if (isMenuOpen) {
+    if (isMenuOpen || isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, isDropdownOpen]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -61,21 +68,55 @@ function Navbar() {
     setIsMenuOpen(false);
   };
 
+  const handleMouseEnter = () => {
+    if (!isMobile) {
+      setIsDropdownOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isMobile) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const toggleDropdown = () => {
+    if (isMobile) {
+      setIsDropdownOpen(!isDropdownOpen);
+    }
+  };
+
+  const toggleLanguageDropdown = () => {
+    setLanguageDropdownOpen(!languageDropdownOpen);
+  };
+
+  const handleLanguageSelect = (language) => {
+    console.log(`Selected language: ${language}`);
+    setLanguageDropdownOpen(false); // Close the language dropdown
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setIsDropdownOpen(false);
+  };
+
   return (
     <div className="overflow-x-hidden">
       <nav className="w-full bg-[#001F54]">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
-          {/* Hamburger Menu */}
-          <button
-            type="button"
-            ref={hamburgerRef}
-            className="space-y-1 mr-4 focus:outline-none"
-            onClick={toggleMenu}
-          >
-            <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-            <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-            <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-          </button>
+          {/* Hamburger Menu (Hidden when sidebar is open) */}
+          {!isMenuOpen && (
+            <button
+              type="button"
+              ref={hamburgerRef}
+              className="space-y-1 mr-4 focus:outline-none cursor-pointer"
+              onClick={toggleMenu}
+            >
+              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+            </button>
+          )}
 
           {/* Log in & Sign up (Desktop Only) */}
           {!isMobile && (
@@ -87,14 +128,8 @@ function Navbar() {
                 <NavLink
                   to="/login"
                   className={({ isActive }) =>
-                    `border-2 border-white rounded-[66px] w-[117px] h-[48px]
-                    flex items-center justify-center 
-                    hover:bg-white hover:text-[#001F54]
-                    transition-all duration-300
-                    ${
-                      isActive
-                        ? "bg-white text-[#001F54]" // Active state
-                        : "text-white" // Default (non-active) state
+                    `border-2 border-white rounded-[66px] w-[117px] h-[48px] flex items-center justify-center hover:bg-white hover:text-[#001F54] transition-all duration-300 ${
+                      isActive ? "bg-white text-[#001F54]" : "text-white"
                     }`
                   }
                 >
@@ -105,14 +140,8 @@ function Navbar() {
                 <NavLink
                   to="/signup"
                   className={({ isActive }) =>
-                    `border-2 border-white rounded-[66px] w-[117px] h-[48px]
-                    flex items-center justify-center 
-                    hover:bg-white hover:text-[#001F54]
-                    transition-all duration-300
-                    ${
-                      isActive
-                        ? "bg-white text-[#001F54]" // Active state
-                        : "text-white" // Default (non-active) state
+                    `border-2 border-white rounded-[66px] w-[117px] h-[48px] flex items-center justify-center hover:bg-white hover:text-[#001F54] transition-all duration-300 ${
+                      isActive ? "bg-white text-[#001F54]" : "text-white"
                     }`
                   }
                 >
@@ -159,13 +188,155 @@ function Navbar() {
                 className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
               />
             </button>
-            <button type="button">
-              <img
-                src={hug}
-                alt="User Icon"
-                className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
-              />
-            </button>
+            <div
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              ref={dropdownRef}
+              className="relative"
+            >
+              <button type="button" onClick={toggleDropdown}>
+                <img
+                  src={hug}
+                  alt="User Icon"
+                  className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div
+                  className={`fixed w-[299px] ${
+                    isMobile ? "top-[88px] right-4" : "left-[1096px]"
+                  } bg-[#001F54] shadow-lg rounded-md z-50`}
+                  style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+                >
+                  <div className="p-4">
+                    {isLoggedIn ? (
+                      <>
+                        <NavLink
+                          to="/profile"
+                          className="flex items-center justify-between mb-4"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <span className="text-white">Profile</span>
+                          <img
+                            src={profileIcon}
+                            alt="Profile Icon"
+                            className="w-6 h-6"
+                          />
+                        </NavLink>
+                        <NavLink
+                          to="/home"
+                          className="flex items-center justify-between mb-4"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <span className="text-white">Home</span>
+                          <img
+                            src={homeIcon}
+                            alt="Home Icon"
+                            className="w-6 h-6"
+                          />
+                        </NavLink>
+                        <NavLink
+                          to="/privacy"
+                          className="flex items-center justify-between mb-4"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <span className="text-white">Privacy</span>
+                          <img
+                            src={privacyIcon}
+                            alt="Privacy Icon"
+                            className="w-6 h-6"
+                          />
+                        </NavLink>
+                        <NavLink
+                          to="/help"
+                          className="flex items-center justify-between mb-4"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <span className="text-white">Help</span>
+                          <img
+                            src={helpIcon}
+                            alt="Help Icon"
+                            className="w-6 h-6"
+                          />
+                        </NavLink>
+                        <div className="flex items-center justify-between mb-4 relative">
+                          <span className="text-white">Language</span>
+                          <div className="flex items-center">
+                            <img
+                              src={languageIcon}
+                              alt="Language Icon"
+                              className="w-6 h-6"
+                            />
+                            <button
+                              onClick={toggleLanguageDropdown}
+                              className="ml-2 focus:outline-none text-white"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                          {languageDropdownOpen && (
+                            <div className="absolute top-8 right-0 bg-[#001F54] shadow-lg rounded-md p-2">
+                              <button
+                                onClick={() => handleLanguageSelect("Arabic")}
+                                className="text-white hover:bg-[#003366] p-2 w-full text-left"
+                              >
+                                Arabic
+                              </button>
+                              <button
+                                onClick={() => handleLanguageSelect("English")}
+                                className="text-white hover:bg-[#003366] p-2 w-full text-left"
+                              >
+                                English
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          className="flex items-center justify-between mb-4 cursor-pointer w-full"
+                          onClick={handleLogout}
+                        >
+                          <span className="text-white">Logout</span>
+                          <img
+                            src={logoutIcon}
+                            alt="Logout Icon"
+                            className="w-6 h-6"
+                          />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <NavLink
+                          to="/login"
+                          className="flex items-center justify-between mb-4"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <span className="text-white">Login</span>
+                          <img
+                            src={profileIcon}
+                            alt="Login Icon"
+                            className="w-6 h-6"
+                          />
+                        </NavLink>
+                        <NavLink
+                          to="/signup"
+                          className="flex items-center justify-between"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <span className="text-white">Signup</span>
+                          <img
+                            src={profileIcon}
+                            alt="Signup Icon"
+                            className="w-6 h-6"
+                          />
+                        </NavLink>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button type="button">
               <img
                 src={cart}
@@ -190,51 +361,49 @@ function Navbar() {
           </div>
         )}
 
+        {/* Overlay */}
+        {isMenuOpen && (
+          <div
+            className="fixed top-0 left-0 w-full h-full bg-[#D9D9D980] bg-opacity-50 z-40"
+            onClick={closeMenu}
+          />
+        )}
+
         {/* Sidebar */}
         <div
           ref={sidebarRef}
-          className={`fixed 
-            top-[88px] 
-            left-0 
-            w-64 
-            h-[calc(100vh-88px)] 
-            bg-[#001F54] 
-            z-50 
-            transform 
-            transition-transform 
-            duration-300 
-            ease-in-out
-            ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
-          `}
+          className={`fixed top-0 left-0 w-64 h-screen bg-[#001F54] z-50 transform transition-transform duration-300 ease-in-out ${
+            isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         >
           {/* Sidebar Content */}
           <div className="p-4 " style={{ fontFamily: "Hedvig Letters Sans" }}>
-            {isMobile && (
-              <>
-                <NavLink
-                  to="/login"
-                  onClick={closeMenu}
-                  className={({ isActive }) =>
-                    `text-white text-center font-bold block mb-4 hover:bg-[#003366] transition-colors duration-200 p-2 rounded ${
-                      isActive ? "bg-[#003366]" : ""
-                    }`
-                  }
-                >
-                  Log in
-                </NavLink>
-                <NavLink
-                  to="/signup"
-                  onClick={closeMenu}
-                  className={({ isActive }) =>
-                    `text-white text-center font-bold block hover:bg-[#003366] transition-colors duration-200 p-2 rounded ${
-                      isActive ? "bg-[#003366]" : ""
-                    }`
-                  }
-                >
-                  Sign up
-                </NavLink>
-              </>
-            )}
+            {/* Hamburger Icon and Categories Text */}
+            <div className="flex items-center mb-6">
+              <button
+                type="button"
+                onClick={toggleMenu}
+                className="space-y-1 focus:outline-none cursor-pointer"
+              >
+                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+              </button>
+              <span
+                className="text-white ml-4"
+                style={{
+                  fontFamily: "Inter",
+                  fontWeight: 700,
+                  fontSize: "32px",
+                  lineHeight: "38.73px",
+                  letterSpacing: "0%",
+                }}
+              >
+                Categories
+              </span>
+            </div>
+
+            {isMobile && <></>}
           </div>
         </div>
       </nav>
