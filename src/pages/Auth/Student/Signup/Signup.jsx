@@ -388,7 +388,7 @@ function Signup() {
       <div className="w-full max-w-5xl bg-gray-900/50 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
         <div className="flex flex-col lg:flex-row">
           {/* Form Section */}
-          <div className="lg:w-3/5 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-16 relative">
+          <div className="lg:w-3/5 bg[#000C21] md:p-16 relative">
             <div className="mb-12">
               <div className="flex items-center space-x-4 mb-4">
                 {[1, 2, 3].map((step) => (
@@ -396,7 +396,7 @@ function Signup() {
                     <motion.div
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         currentStep >= step
-                          ? "bg-indigo-500 text-white"
+                          ? "bg-[#001F54] text-white"
                           : "bg-white/10 text-gray-400"
                       }`}
                       whileHover={{ scale: 1.1 }}
@@ -407,7 +407,7 @@ function Signup() {
                     {step < 3 && (
                       <div
                         className={`w-12 h-0.5 ${
-                          currentStep > step ? "bg-indigo-500" : "bg-white/10"
+                          currentStep > step ? "bg-[#001F54]" : "bg-white/10"
                         }`}
                       />
                     )}
@@ -436,7 +436,7 @@ function Signup() {
                 )}
                 <motion.button
                   type="submit"
-                  className={`flex-1 h-14 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                  className={`flex-1 h-14 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                     isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                   }`}
                   whileHover={{ scale: 1.02 }}
@@ -498,7 +498,7 @@ function Signup() {
                         damping: 20,
                         delay: 0.4,
                       }}
-                      className="bg-indigo-500/20 rounded-full p-2 mb-8"
+                      className="bg-[#001F54]/20 rounded-full p-2 mb-8"
                     >
                       <motion.div
                         className="w-20 h-20 mx-auto text-indigo-500"
@@ -526,7 +526,7 @@ function Signup() {
                       Your account has been successfully created
                     </motion.p>
                     <motion.button
-                      className="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
+                      className="px-8 py-3 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.2 }}

@@ -67,7 +67,7 @@ function Login() {
       <div className="w-full max-w-5xl bg-gray-900/50 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
         <div className="flex flex-col lg:flex-row">
           {/* Form Section */}
-          <div className="lg:w-3/5 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-16 relative">
+          <div className="lg:w-3/5 bg[#000C21] p-8 md:p-16 relative">
             <div className="mb-12 flex items-center space-x-4">
               <BookOpen className="text-indigo-500 w-10 h-10" />
               <h1 className="text-3xl font-bold text-white">Student Portal</h1>
@@ -149,7 +149,7 @@ function Login() {
               {/* Submit Button */}
               <motion.button
                 type="submit"
-                className={`w-full h-14 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                className={`w-full h-14 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                   isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                 }`}
                 whileHover={{ scale: 1.02 }}
@@ -214,7 +214,7 @@ function Login() {
                       Successfully signed in as {formData.role}
                     </motion.p>
                     <motion.button
-                      className="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
+                      className="px-8 py-3 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}

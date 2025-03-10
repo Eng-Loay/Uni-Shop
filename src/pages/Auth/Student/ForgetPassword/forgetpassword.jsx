@@ -178,7 +178,7 @@ function ForgotPassword() {
                   {/* Submit Button */}
                   <motion.button
                     type="submit"
-                    className={`w-full h-14 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                    className={`w-full h-14 bg-[#001F54]hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                       isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                     }`}
                     whileHover={{ scale: 1.02 }}
@@ -252,7 +252,7 @@ function ForgotPassword() {
                   {/* Submit Button */}
                   <motion.button
                     type="submit"
-                    className={`w-full h-14 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                    className={`w-full h-14 bg-[#001F54]hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                       isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                     }`}
                     whileHover={{ scale: 1.02 }}
@@ -365,7 +365,7 @@ function ForgotPassword() {
                   {/* Submit Button */}
                   <motion.button
                     type="submit"
-                    className={`w-full h-14 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                    className={`w-full h-14 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                       isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                     }`}
                     whileHover={{ scale: 1.02 }}
@@ -429,7 +429,7 @@ function ForgotPassword() {
                         : "Your password has been updated successfully."}
                     </motion.p>
                     <motion.button
-                      className="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
+                      className="px-8 py-3 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}

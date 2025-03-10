@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
 import {
   Mail,
   Lock,
@@ -9,17 +10,20 @@ import {
   Library,
   LogIn,
   BookOpen,
+  AlertCircle,
 } from "lucide-react";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function LibraryLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "member", // Default role
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState(null); // State for storing error messages
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -27,15 +31,38 @@ function LibraryLogin() {
       ...prev,
       [name]: value,
     }));
+    setError(null); // Clear error when user starts typing
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setShowSuccess(true);
+    setError(null); // Reset error state before submitting
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}api/v1/auth/library/login`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      console.log("Login successful:", response.data);
+      setShowSuccess(true);
+    } catch (error) {
+      if (error.response && error.response.status === 403) {
+        setError(
+          "Your account is pending admin approval. Please wait for approval before logging in."
+        );
+      } else {
+        setError("Login failed. Please check your credentials and try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const successVariants = {
@@ -67,7 +94,7 @@ function LibraryLogin() {
       <div className="w-full max-w-5xl bg-gray-900/50 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
         <div className="flex flex-col lg:flex-row">
           {/* Form Section */}
-          <div className="lg:w-3/5 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-16 relative">
+          <div className="lg:w-3/5 bg[#000C21] p-8 md:p-16 relative">
             <div className="mb-12 flex items-center space-x-4">
               <Library className="text-indigo-500 w-10 h-10" />
               <h1 className="text-3xl font-bold text-white">Library Portal</h1>
@@ -78,6 +105,20 @@ function LibraryLogin() {
                 <h2 className="text-3xl font-bold text-white mb-8">
                   Welcome to the Library! 📚
                 </h2>
+
+                {/* Error Message */}
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center space-x-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 mb-4"
+                  >
+                    <AlertCircle className="w-5 h-5" />
+                    <span>{error}</span>
+                  </motion.div>
+                )}
+
                 <div className="space-y-6">
                   {/* Email Field */}
                   <div className="relative">
@@ -149,7 +190,7 @@ function LibraryLogin() {
               {/* Submit Button */}
               <motion.button
                 type="submit"
-                className={`w-full h-14 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                className={`w-full h-14 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                   isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                 }`}
                 whileHover={{ scale: 1.02 }}
@@ -170,7 +211,7 @@ function LibraryLogin() {
               <p className="text-center text-gray-400">
                 Don&apos;t have a library card?{" "}
                 <NavLink
-                  to="/signup"
+                  to="/signuplibrary"
                   className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
                 >
                   Register now

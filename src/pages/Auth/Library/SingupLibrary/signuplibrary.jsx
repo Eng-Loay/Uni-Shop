@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
 import {
   Building2,
   Mail,
@@ -13,22 +14,28 @@ import {
   ArrowLeft,
   CheckCircle2,
   BookOpen,
+  User,
 } from "lucide-react";
 
 function SignupLibrary() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
-    libraryName: "",
+    name: "", // Updated from libraryName to name
+    username: "", // Added username field
+    location: "",
+    license: "", // Updated from license to license
     email: "",
     password: "",
-    license: "",
-    location: "",
+    passwordConfirm: "", // Added confirmPassword field
   });
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
   const [passwordStrength, setPasswordStrength] = useState(0);
-
+  const [passwordMatchError, setPasswordMatchError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -43,6 +50,22 @@ function SignupLibrary() {
       if (value.match(/[0-9]/)) strength += 25;
       if (value.match(/[^A-Za-z0-9]/)) strength += 25;
       setPasswordStrength(strength);
+
+      // Check if passwords match
+      if (formData.passwordConfirm && value !== formData.passwordConfirm) {
+        setPasswordMatchError(true);
+      } else {
+        setPasswordMatchError(false);
+      }
+    }
+
+    if (name === "passwordConfirm") {
+      // Check if passwords match
+      if (formData.password && value !== formData.password) {
+        setPasswordMatchError(true);
+      } else {
+        setPasswordMatchError(false);
+      }
     }
   };
 
@@ -51,17 +74,52 @@ function SignupLibrary() {
       setCurrentStep((prev) => prev - 1);
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Check if passwords match before submitting
+    if (formData.password !== formData.passwordConfirm) {
+      setPasswordMatchError(true);
+      return;
+    }
+
     if (currentStep < 3) {
       setCurrentStep((prev) => prev + 1);
     } else {
       setIsSubmitting(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setIsSubmitting(false);
-      setShowSuccess(true);
+      setErrorMessage(""); // Clear any previous error messages
+
+      try {
+        // Make API call to the signup endpoint
+        const response = await axios.post(
+          `${API_BASE_URL}api/v1/auth/library/signup`,
+          {
+            name: formData.name,
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            passwordConfirm: formData.passwordConfirm,
+            license: formData.license,
+            location: formData.location,
+          }
+        );
+
+        // Handle successful response
+        if (response.status === 201) {
+          setShowSuccess(true);
+        }
+      } catch (error) {
+        // Handle API errors
+        if (error.response) {
+          setErrorMessage(
+            error.response.data.message ||
+              "An error occurred during registration."
+          );
+        } else {
+          setErrorMessage("Network error. Please try again.");
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -134,14 +192,35 @@ function SignupLibrary() {
               <div className="relative group">
                 <input
                   type="text"
-                  name="libraryName"
-                  value={formData.libraryName}
+                  name="name" // Updated from libraryName to name
+                  value={formData.name}
                   onChange={handleInputChange}
                   className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
                   placeholder="Enter library name"
                   required
                 />
                 <Building2
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                  size={20}
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <label className="text-white text-sm font-medium mb-2 block">
+                Username
+              </label>
+              <div className="relative group">
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                  placeholder="Enter username"
+                  required
+                />
+                <User
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
                   size={20}
                 />
@@ -245,6 +324,43 @@ function SignupLibrary() {
                 </p>
               </div>
             </div>
+
+            <div className="relative">
+              <label className="text-white text-sm font-medium mb-2 block">
+                Confirm Password
+              </label>
+              <div className="relative group">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="passwordConfirm"
+                  value={formData.passwordConfirm}
+                  onChange={handleInputChange}
+                  className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-12 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                  placeholder="Confirm your password"
+                  required
+                />
+                <Lock
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                  size={20}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-400 focus:outline-none transition-colors duration-200"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
+              {passwordMatchError && (
+                <p className="text-sm text-red-400 mt-2">
+                  Passwords do not match.
+                </p>
+              )}
+            </div>
           </motion.div>
         );
       case 3:
@@ -273,7 +389,7 @@ function SignupLibrary() {
               <div className="relative group">
                 <input
                   type="text"
-                  name="license"
+                  name="license" // Updated from license to license
                   value={formData.license}
                   onChange={handleInputChange}
                   className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
@@ -315,11 +431,11 @@ function SignupLibrary() {
   };
 
   return (
-    <div className="min-h-screen  bg-[#001F54] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#001F54] flex items-center justify-center p-6">
       <div className="w-full max-w-5xl bg-gray-900/50 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
         <div className="flex flex-col lg:flex-row">
           {/* Form Section */}
-          <div className="lg:w-3/5 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-16 relative">
+          <div className="lg:w-3/5 bg[#000C21] p-8 md:p-16 relative">
             <div className="mb-12">
               <div className="flex items-center space-x-4 mb-4">
                 {[1, 2, 3].map((step) => (
@@ -351,7 +467,11 @@ function SignupLibrary() {
               <AnimatePresence mode="wait" initial={false}>
                 {renderStep()}
               </AnimatePresence>
-
+              {errorMessage && (
+                <p className="text-sm text-red-400 mt-4 text-center">
+                  {errorMessage}
+                </p>
+              )}
               <div className="flex space-x-4 mt-12">
                 {currentStep > 1 && (
                   <motion.button
@@ -367,7 +487,7 @@ function SignupLibrary() {
                 )}
                 <motion.button
                   type="submit"
-                  className={`flex-1 h-14 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                  className={`flex-1 h-14 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                     isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                   }`}
                   whileHover={{ scale: 1.02 }}
@@ -451,21 +571,29 @@ function SignupLibrary() {
                       Registration Complete!
                     </motion.h3>
                     <motion.p
-                      className="text-gray-400 mb-8"
+                      className="text-gray-400 mb-4"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1 }}
                     >
-                      Your library has been successfully registered
+                      Your library has been successfully registered.
+                    </motion.p>
+                    <motion.p
+                      className="text-gray-400 mb-8"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.2 }}
+                    >
+                      Please wait for admin approval before logging in.
                     </motion.p>
                     <motion.button
                       className="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.2 }}
-                      onClick={() => window.location.reload()}
+                      transition={{ delay: 1.4 }}
+                      onClick={() => (window.location.href = "/loginlibrary")} // Redirect to login page
                     >
-                      Get Started
+                      Login
                     </motion.button>
                   </div>
                 </motion.div>
