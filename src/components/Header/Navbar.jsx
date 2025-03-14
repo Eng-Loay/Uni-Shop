@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
+import { MdDashboard } from "react-icons/md";
+
 import searchIcon from "../../assets/Header/search-icon.svg";
 import fav from "../../assets/Header/favoritte.svg";
 import hug from "../../assets/Header/hug.svg";
@@ -11,18 +13,56 @@ import privacyIcon from "../../assets/Header/privacy.svg";
 import helpIcon from "../../assets/Header/help.svg";
 import languageIcon from "../../assets/Header/language.svg";
 import logoutIcon from "../../assets/Header/logout.svg";
+import axios from "axios";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 860);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem("isLoggedIn") === "true"
+  );
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
   const sidebarRef = useRef(null);
   const hamburgerRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  // Check login status on component mount
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}api/v1/auth/library/library-data`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (response.status === 200) {
+          setIsLoggedIn(true);
+          localStorage.setItem("isLoggedIn", "true"); // Save login state
+        } else {
+          setIsLoggedIn(false);
+          localStorage.removeItem("isLoggedIn"); // Clear login state
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          console.error("Endpoint not found:", error.response.data);
+        } else {
+          console.error("Error checking login status:", error);
+        }
+        setIsLoggedIn(false);
+        localStorage.removeItem("isLoggedIn"); // Clear login state
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
+
+  // Handle window resize for mobile detection
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 860);
@@ -31,6 +71,7 @@ function Navbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Disable body scroll when sidebar is open
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = "hidden";
@@ -42,6 +83,7 @@ function Navbar() {
     };
   }, [isMenuOpen]);
 
+  // Handle click outside sidebar and dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -95,9 +137,25 @@ function Navbar() {
     setLanguageDropdownOpen(false); // Close the language dropdown
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setIsDropdownOpen(false);
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}api/v1/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 200) {
+        setIsLoggedIn(false);
+        localStorage.removeItem("isLoggedIn"); // Clear login state
+        setIsDropdownOpen(false);
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
   };
 
   return (
@@ -119,7 +177,7 @@ function Navbar() {
           )}
 
           {/* Log in & Sign up (Desktop Only) */}
-          {!isMobile && (
+          {!isMobile && !isLoggedIn && (
             <ul
               className="hidden sm:flex space-x-[20px]"
               style={{ fontFamily: "Hedvig Letters Sans" }}
@@ -152,7 +210,11 @@ function Navbar() {
           )}
 
           {/* Logo & Title */}
-          <div className="flex items-center space-x-3 lg:ml-10">
+          <div
+            className={`flex items-center space-x-3 ${
+              isLoggedIn ? "ml-auto" : "lg:ml-10"
+            }`}
+          >
             <NavLink to="/">
               <img
                 src={logo}
@@ -169,18 +231,23 @@ function Navbar() {
             </span>
           </div>
 
-          {/* Search Bar (Tablet & Desktop) */}
-          <div className="hidden sm:flex items-center bg-white rounded-md px-2 lg:ml-[450px] md:ml-16 lg:mr-5 ">
-            <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-[180px] md:w-[250px] h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm md:text-base"
-            />
-          </div>
-
-          {/* Icons */}
+          {/* Icons and Search Bar */}
           <div className="ml-auto flex items-center space-x-3">
+            {/* Search Bar */}
+            <div
+              className={`hidden sm:flex items-center bg-white rounded-md px-2 ${
+                isLoggedIn ? "ml-4" : "ml-0"
+              }`}
+            >
+              <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-[180px] md:w-[250px] h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm md:text-base"
+              />
+            </div>
+
+            {/* Icons */}
             <button type="button">
               <img
                 src={fav}
@@ -261,6 +328,15 @@ function Navbar() {
                             className="w-6 h-6"
                           />
                         </NavLink>
+                        <NavLink
+                          to="/dashboard"
+                          className="flex items-center justify-between mb-4"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <span className="text-white">Dashboard</span>
+                          <MdDashboard className="w-6 h-6 text-white" />
+                        </NavLink>
+
                         <div className="flex items-center justify-between mb-4 relative">
                           <span className="text-white">Language</span>
                           <div className="flex items-center">

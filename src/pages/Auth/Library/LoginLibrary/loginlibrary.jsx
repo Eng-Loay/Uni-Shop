@@ -23,7 +23,8 @@ function LibraryLogin() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [error, setError] = useState(null); // State for storing error messages
+  const [error, setError] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,13 +32,13 @@ function LibraryLogin() {
       ...prev,
       [name]: value,
     }));
-    setError(null); // Clear error when user starts typing
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError(null); // Reset error state before submitting
+    setError(null);
 
     try {
       const response = await axios.post(
@@ -50,7 +51,9 @@ function LibraryLogin() {
           withCredentials: true,
         }
       );
+
       console.log("Login successful:", response.data);
+      setUserData(response.data.data);
       setShowSuccess(true);
     } catch (error) {
       if (error.response && error.response.status === 403) {
@@ -252,16 +255,17 @@ function LibraryLogin() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
                     >
-                      Successfully signed in as {formData.role}
+                      Successfully signed in as{" "}
+                      {userData?.name || formData.email}
                     </motion.p>
                     <motion.button
                       className="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
-                      onClick={() => window.location.reload()}
+                      onClick={() => (window.location.href = "/")}
                     >
-                      Go To DashBoard
+                      Go To Dashboard
                     </motion.button>
                   </div>
                 </motion.div>
