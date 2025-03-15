@@ -264,7 +264,13 @@ function LibraryLogin() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
-                      onClick={navigate("/dashboardlibrary")}
+                      onClick={() => {
+                        // Optional: Add a small delay to simulate a "refresh" effect
+                        
+                        setTimeout(() => {
+                          window.location.href = "/dashboardlibrary"; // Navigate to /dashboard
+                        }, 100);
+                      }}
                     >
                       Go To Dashboard
                     </motion.button>
