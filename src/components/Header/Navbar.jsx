@@ -293,7 +293,7 @@ function Navbar() {
                           />
                         </NavLink>
                         <NavLink
-                          to="/home"
+                          to="/"
                           className="flex items-center justify-between mb-4"
                           onClick={() => setIsDropdownOpen(false)}
                         >
@@ -329,7 +329,7 @@ function Navbar() {
                           />
                         </NavLink>
                         <NavLink
-                          to="/dashboard"
+                          to="/dashboardlibrary"
                           className="flex items-center justify-between mb-4"
                           onClick={() => setIsDropdownOpen(false)}
                         >

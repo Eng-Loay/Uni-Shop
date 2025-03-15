@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Mail,
@@ -25,6 +25,7 @@ function LibraryLogin() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -263,7 +264,7 @@ function LibraryLogin() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
-                      onClick={() => (window.location.href = "/")}
+                      onClick={navigate("/dashboardlibrary")}
                     >
                       Go To Dashboard
                     </motion.button>

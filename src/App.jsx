@@ -9,7 +9,7 @@ import SignupLibrary from "./pages/Auth/Library/SingupLibrary/signuplibrary";
 import LibraryLogin from "./pages/Auth/Library/LoginLibrary/loginlibrary";
 import ForgotPassword from "./pages/Auth/Student/ForgetPassword/forgetpassword";
 import ForgotPasswordLibrary from "./pages/Auth/Library/ForgetPasswordLibrary/forgetpasswordlibrary";
-
+import DashBoard from "./pages/Library/DashBoard/dashboard";
 function App() {
   return (
     <>
@@ -23,6 +23,7 @@ function App() {
           <Route path="/loginlibrary" element={<LibraryLogin />} />
           <Route path="/forgetpassword" element={<ForgotPassword />} />
           <Route path="/forgetpasswordlibrary" element={<ForgotPasswordLibrary />} />
+          <Route path="/dashboardlibrary" element={<DashBoard/>} />
         </Routes>
         <Fotter />
       </Router>
