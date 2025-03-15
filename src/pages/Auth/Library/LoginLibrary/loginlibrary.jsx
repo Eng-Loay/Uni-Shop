@@ -265,7 +265,6 @@ function LibraryLogin() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                       onClick={() => {
-                        // Optional: Add a small delay to simulate a "refresh" effect
                         
                         setTimeout(() => {
                           window.location.href = "/dashboardlibrary"; // Navigate to /dashboard

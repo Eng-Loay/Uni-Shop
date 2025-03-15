@@ -56,7 +56,7 @@ const Footer = () => {
       <div className="text-center mt-6">
         <NavLink
           to="/signuplibrary"
-          className="text-sm text-gray-300 hover:text-white underline"
+          className="border-2 border-white rounded-[66px] w-[160px] h-[48px] flex items-center justify-center hover:bg-white hover:text-[#001F54] transition-all duration-300 text-white"
         >
           Join as Library
         </NavLink>
