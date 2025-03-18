@@ -7,8 +7,8 @@ import { NavLink } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#001F54] text-white py-8 px-4 w-full flex flex-col items-center">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+    <footer className="bg-[#001F54] text-white py-8 px-4 w-full flex flex-col items-center  bottom-0">
+      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center ">
         {/* UNI SHOP Section */}
         <div>
           <h2 className="text-lg font-semibold underline mb-4">UNI SHOP</h2>

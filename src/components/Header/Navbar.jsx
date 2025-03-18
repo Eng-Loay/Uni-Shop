@@ -27,7 +27,7 @@ function Navbar() {
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
   const sidebarRef = useRef(null);
-  const hamburgerRef = useRef(null);
+  // const hamburgerRef = useRef(null);
   const dropdownRef = useRef(null);
 
   // Check login status on component mount
@@ -160,10 +160,10 @@ function Navbar() {
 
   return (
     <div className="overflow-x-hidden">
-      <nav className="w-full bg-[#001F54]">
+      <nav className="w-full bg-[#001F54] ">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
           {/* Hamburger Menu (Hidden when sidebar is open) */}
-          {!isMenuOpen && (
+          {/* {!isMenuOpen && (
             <button
               type="button"
               ref={hamburgerRef}
@@ -174,7 +174,7 @@ function Navbar() {
               <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
               <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
             </button>
-          )}
+          )} */}
 
           {/* Log in & Sign up (Desktop Only) */}
           {!isMobile && !isLoggedIn && (
@@ -269,7 +269,7 @@ function Navbar() {
                 />
               </button>
 
-              {/* Dropdown Menu */}
+              {/* Dropdown Menu*/}
               {isDropdownOpen && (
                 <div
                   className={`fixed w-[299px] ${
@@ -329,7 +329,7 @@ function Navbar() {
                           />
                         </NavLink>
                         <NavLink
-                          to="/dashboardlibrary"
+                          to="/MiniDrawer"
                           className="flex items-center justify-between mb-4"
                           onClick={() => setIsDropdownOpen(false)}
                         >
@@ -413,6 +413,7 @@ function Navbar() {
                 </div>
               )}
             </div>
+
             <button type="button">
               <img
                 src={cart}

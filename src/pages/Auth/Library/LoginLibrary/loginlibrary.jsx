@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import axios from "axios";
 import {
   Mail,
@@ -25,7 +25,7 @@ function LibraryLogin() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -265,9 +265,8 @@ function LibraryLogin() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                       onClick={() => {
-                        
                         setTimeout(() => {
-                          window.location.href = "/dashboardlibrary"; // Navigate to /dashboard
+                          window.location.href = "/MiniDrawer"; // Navigate to /dashboard
                         }, 100);
                       }}
                     >
