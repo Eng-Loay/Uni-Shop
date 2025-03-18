@@ -55,6 +55,9 @@ function LibraryLogin() {
 
       console.log("Login successful:", response.data);
       setUserData(response.data.data);
+      if (response.data.data && response.data.data.id) {
+        localStorage.setItem("userId", response.data.data.id);
+      }
       setShowSuccess(true);
     } catch (error) {
       if (error.response && error.response.status === 403) {
