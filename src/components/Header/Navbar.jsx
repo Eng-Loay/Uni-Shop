@@ -273,7 +273,7 @@ function Navbar() {
               {isDropdownOpen && (
                 <div
                   className={`fixed w-[299px] ${
-                    isMobile ? "top-[88px] right-4" : "left-[1096px]"
+                    isMobile ? "top-[88px] right-4" : "right-0 "
                   } bg-[#001F54] shadow-lg rounded-md z-50`}
                   style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
                 >
