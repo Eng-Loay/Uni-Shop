@@ -28,6 +28,14 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import LayersIcon from "@mui/icons-material/Layers";
 import { maxWidth } from "@mui/system";
 
+
+
+import { useNavigate } from "react-router-dom";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import LoginIcon from "@mui/icons-material/Login";
+import LockResetIcon from "@mui/icons-material/LockReset";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+
 const CustomAppBar = styled(MuiAppBar)(({ theme }) => ({
   backgroundColor: "red", // Change AppBar background
   boxShadow: "none", // Remove shadow
@@ -208,6 +216,7 @@ const CollapsibleMenu = ({ item }) => {
 export default function MiniDrawer() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate(); // ✅ Declare useNavigate at the top level
 
   const handleDrawerOpen = () => setOpen(true);
   const handleDrawerClose = () => setOpen(false);
@@ -223,36 +232,7 @@ export default function MiniDrawer() {
         }}
       >
         <CssBaseline />
-
-        {/* <AppBar  
-      
-          position="fixed"
-          open={open}
-          sx={{ boxShadow: "none", backgroundColor: "transparent" , Width: "20%" ,left:0 }}
-        >
-          
-          <CustomAppBar position="fixed">
-          <Toolbar 
-  variant="dense" 
-
-  sx={{ width: "20%",left:0 }} // Set width properly
->
-
-            {!open && (
-              <IconButton
-                color="default"
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                edge="start"
-                sx={{ color: "white" }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-          </Toolbar>
-          </CustomAppBar>
-        </AppBar> */}
-
+        {/* //////// */}
         <AppBar
           position="fixed"
           open={open}
@@ -277,7 +257,7 @@ export default function MiniDrawer() {
             )}
           </Toolbar>
         </AppBar>
-
+        {/* ///////// */}
         <Drawer variant="permanent" open={open}>
           <DrawerHeader>
             {open && (
@@ -290,13 +270,13 @@ export default function MiniDrawer() {
           <List sx={{ gap: 2, display: "flex", flexDirection: "column" }}>
             {NAVIGATION.map((item, index) => {
               if (item.kind === "header") {
-                return open ? ( // Show header only if drawer is open
+                return open ? (
                   <ListSubheader
                     key={index}
                     sx={{
                       color: "white",
                       bgcolor: "transparent",
-                      pointerEvents: "none", // Prevent hover effect
+                      pointerEvents: "none",
                     }}
                   >
                     {item.title}
@@ -309,6 +289,8 @@ export default function MiniDrawer() {
               if (item.children) {
                 return <CollapsibleMenu key={index} item={item} />;
               }
+
+              // ✅ Fix: No `const navigate = useNavigate();` inside the return
               return (
                 <ListItem
                   key={item.segment}
@@ -316,6 +298,7 @@ export default function MiniDrawer() {
                     color: "white",
                     "&:hover": { bgcolor: "#90caf9" },
                   }}
+                  onClick={() => navigate(`/${item.segment}`)} // ✅ Navigation works correctly
                 >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.title} />
