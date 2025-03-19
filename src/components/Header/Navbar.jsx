@@ -19,7 +19,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 860);
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024); // Adjusted for tablets
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("isLoggedIn") === "true"
@@ -27,7 +27,6 @@ function Navbar() {
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
   const sidebarRef = useRef(null);
-  // const hamburgerRef = useRef(null);
   const dropdownRef = useRef(null);
 
   // Check login status on component mount
@@ -62,10 +61,10 @@ function Navbar() {
     checkLoginStatus();
   }, []);
 
-  // Handle window resize for mobile detection
+  // Handle window resize for screen size detection
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 860);
+      setIsSmallScreen(window.innerWidth <= 1024); // Adjusted for tablets
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -111,19 +110,19 @@ function Navbar() {
   };
 
   const handleMouseEnter = () => {
-    if (!isMobile) {
+    if (!isSmallScreen) {
       setIsDropdownOpen(true);
     }
   };
 
   const handleMouseLeave = () => {
-    if (!isMobile) {
+    if (!isSmallScreen) {
       setIsDropdownOpen(false);
     }
   };
 
   const toggleDropdown = () => {
-    if (isMobile) {
+    if (isSmallScreen) {
       setIsDropdownOpen(!isDropdownOpen);
     }
   };
@@ -149,7 +148,9 @@ function Navbar() {
 
       if (response.status === 200) {
         setIsLoggedIn(false);
-        localStorage.removeItem("isLoggedIn"); // Clear login state
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("role"); // Clear login state
+        localStorage.removeItem("userId"); // Clear login state
         setIsDropdownOpen(false);
         window.location.href = "/";
       }
@@ -160,94 +161,35 @@ function Navbar() {
 
   return (
     <div className="overflow-x-hidden">
-      <nav className="w-full bg-[#001F54] ">
+      <nav className="w-full bg-[#001F54]">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
-          {/* Hamburger Menu (Hidden when sidebar is open) */}
-          {/* {!isMenuOpen && (
-            <button
-              type="button"
-              ref={hamburgerRef}
-              className="space-y-1 mr-4 focus:outline-none cursor-pointer"
-              onClick={toggleMenu}
-            >
-              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-            </button>
-          )} */}
-
-          {/* Log in & Sign up (Desktop Only) */}
-          {!isMobile && !isLoggedIn && (
-            <ul
-              className="hidden sm:flex space-x-[20px]"
-              style={{ fontFamily: "Hedvig Letters Sans" }}
-            >
-              <li className="nav-login">
-                <NavLink
-                  to="/login"
-                  className={({ isActive }) =>
-                    `border-2 border-white rounded-[66px] w-[117px] h-[48px] flex items-center justify-center hover:bg-white hover:text-[#001F54] transition-all duration-300 ${
-                      isActive ? "bg-white text-[#001F54]" : "text-white"
-                    }`
-                  }
-                >
-                  Log in
-                </NavLink>
-              </li>
-              <li className="nav-signup">
-                <NavLink
-                  to="/signup"
-                  className={({ isActive }) =>
-                    `border-2 border-white rounded-[66px] w-[117px] h-[48px] flex items-center justify-center hover:bg-white hover:text-[#001F54] transition-all duration-300 ${
-                      isActive ? "bg-white text-[#001F54]" : "text-white"
-                    }`
-                  }
-                >
-                  Sign up
-                </NavLink>
-              </li>
-            </ul>
-          )}
-
-          {/* Logo & Title */}
-          <div
-            className={`flex items-center space-x-3 ${
-              isLoggedIn ? "ml-auto" : "lg:ml-10"
-            }`}
-          >
+          {/* Logo */}
+          <div className="flex items-center space-x-3">
             <NavLink to="/">
               <img
                 src={logo}
                 alt="Uni Shop Logo"
-                className="w-8 h-8 sm:w-16 sm:h-16 transition duration-300 hover:scale-110"
+                className="w-20 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
               />
             </NavLink>
-
-            <span
-              className="text-white font-bold text-lg sm:text-xl md:text-2xl"
-              style={{ fontFamily: "Inter" }}
-            >
-              Uni Shop
-            </span>
           </div>
 
-          {/* Icons and Search Bar */}
-          <div className="ml-auto flex items-center space-x-3">
-            {/* Search Bar */}
-            <div
-              className={`hidden sm:flex items-center bg-white rounded-md px-2 ${
-                isLoggedIn ? "ml-4" : "ml-0"
-              }`}
-            >
-              <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-[180px] md:w-[250px] h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm md:text-base"
-              />
+          {/* Search Bar - Hidden on small and tablet screens */}
+          {!isSmallScreen && (
+            <div className="flex-grow flex justify-center mx-4">
+              <div className="flex items-center bg-white rounded-md px-2 w-full max-w-[600px]">
+                <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="w-full h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm md:text-base"
+                />
+              </div>
             </div>
+          )}
 
-            {/* Icons */}
+          {/* Icons - Aligned to the right */}
+          <div className="flex items-center space-x-3 ml-auto">
             <button type="button">
               <img
                 src={fav}
@@ -269,11 +211,11 @@ function Navbar() {
                 />
               </button>
 
-              {/* Dropdown Menu*/}
+              {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div
                   className={`fixed w-[299px] ${
-                    isMobile ? "top-[88px] right-4" : "right-0 "
+                    isSmallScreen ? "top-[88px] right-4" : "right-0"
                   } bg-[#001F54] shadow-lg rounded-md z-50`}
                   style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
                 >
@@ -424,9 +366,9 @@ function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        {isMobile && (
-          <div className="w-full px-4 pb-2 sm:hidden">
+        {/* Mobile Search Bar - Only visible on small and tablet screens */}
+        {isSmallScreen && (
+          <div className="w-full px-4 pb-2">
             <div className="flex items-center bg-white rounded-md px-2">
               <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
               <input
@@ -480,7 +422,7 @@ function Navbar() {
               </span>
             </div>
 
-            {isMobile && <></>}
+            {isSmallScreen && <></>}
           </div>
         </div>
       </nav>
