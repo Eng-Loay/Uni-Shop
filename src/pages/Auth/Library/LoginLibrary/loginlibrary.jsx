@@ -57,6 +57,7 @@ function LibraryLogin() {
       setUserData(response.data.data);
       if (response.data.data && response.data.data.id) {
         localStorage.setItem("userId", response.data.data.id);
+        localStorage.setItem("role", response.data.data.role);
       }
       setShowSuccess(true);
     } catch (error) {
