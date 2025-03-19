@@ -164,7 +164,7 @@ function Navbar() {
       <nav className="w-full bg-[#001F54]">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3  overflow-hidden">
             <NavLink to="/">
               <img
                 src={logo}
