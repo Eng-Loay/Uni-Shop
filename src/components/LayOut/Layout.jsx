@@ -31,11 +31,11 @@ import DrawerChecker from "../DrawerChecker/DrawerChecker";
 export default function Layout() {
   return (
     <>
-      <div className="flex  min-h-screen  mx-auto  text-gray-950">
+      <div className="flex min-h-screen mx-auto text-gray-950">
         <DrawerChecker />
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1">
           <Navbar />
-          <Outlet />
+          <Outlet /> {/* This will render MiniDrawer for /MiniDrawer */}
           <Footer />
         </div>
       </div>
