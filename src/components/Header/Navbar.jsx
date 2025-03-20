@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
+import { IoIosNotificationsOutline } from "react-icons/io";
+import { IoSettingsOutline } from "react-icons/io5";
 
 import searchIcon from "../../assets/Header/search-icon.svg";
 import fav from "../../assets/Header/favoritte.svg";
@@ -24,6 +26,9 @@ function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("isLoggedIn") === "true"
   );
+  const userRole = localStorage.getItem("role");
+  const isLibrary = userRole === "library";
+
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
   const sidebarRef = useRef(null);
@@ -101,6 +106,18 @@ function Navbar() {
     };
   }, [isMenuOpen, isDropdownOpen]);
 
+  // Close dropdown on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isDropdownOpen) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isDropdownOpen]);
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -164,7 +181,7 @@ function Navbar() {
       <nav className="w-full bg-[#001F54]">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
           {/* Logo */}
-          <div className="flex items-center space-x-3  overflow-hidden">
+          <div className="flex items-center space-x-3 overflow-hidden">
             <NavLink to="/">
               <img
                 src={logo}
@@ -190,13 +207,39 @@ function Navbar() {
 
           {/* Icons - Aligned to the right */}
           <div className="flex items-center space-x-3 ml-auto">
-            <button type="button">
-              <img
-                src={fav}
-                alt="Favourite Icon"
-                className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
-              />
-            </button>
+            {isLoggedIn && isLibrary ? (
+              <>
+                {/* Notification Icon */}
+                <button type="button">
+                  <IoIosNotificationsOutline className="w-8 h-8 sm:w-10 sm:h-10 cursor-pointer text-white" />
+                </button>
+                {/* Settings Icon */}
+                <button type="button">
+                  <IoSettingsOutline className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer text-white" />
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Favourite Icon */}
+                <button type="button">
+                  <img
+                    src={fav}
+                    alt="Favourite Icon"
+                    className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
+                  />
+                </button>
+                {/* Cart Icon */}
+                <button type="button">
+                  <img
+                    src={cart}
+                    alt="Cart Icon"
+                    className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
+                  />
+                </button>
+              </>
+            )}
+
+            {/* User Icon and Dropdown */}
             <div
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
@@ -355,14 +398,6 @@ function Navbar() {
                 </div>
               )}
             </div>
-
-            <button type="button">
-              <img
-                src={cart}
-                alt="Cart Icon"
-                className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
-              />
-            </button>
           </div>
         </div>
 
