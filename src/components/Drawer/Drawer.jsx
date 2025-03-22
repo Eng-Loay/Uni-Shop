@@ -9,6 +9,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import Login from "../../pages/Auth/Library/LoginLibrary/loginlibrary";
+import ItemsLibrary from "../../pages/Auth/Library/ItemsLibrary/ItemsLibrary";
 
 // Class-based components for each page
 class HomePage extends React.Component {
@@ -54,6 +55,7 @@ const NAVIGATION = [
         title: "Items",
         icon: <FaBoxOpen size={20} />,
         path: "/items",
+       
       },
       {
         title: "Orders",
@@ -144,7 +146,7 @@ function MiniDrawer() {
       case "/orders":
         return <Login />;
       case "/items":
-        return <Login />;
+        return <ItemsLibrary/>;
       case "/information":
         return <Login />;
       case "/logout":

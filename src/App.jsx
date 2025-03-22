@@ -11,6 +11,8 @@ import ForgotPasswordLibrary from "./pages/Auth/Library/ForgetPasswordLibrary/fo
 import Layout from "./components/Layout/Layout";
 import MiniDrawer from "./components/Drawer/Drawer";
 import HomeDrawer from "./components/Drawer/HomeDrawer";
+import ItemsLibrary from "./pages/Auth/Library/ItemsLibrary/ItemsLibrary";
+import AddItem from "./pages/Auth/Library/AddItem/AddItem";
 
 let x = createBrowserRouter([
   {
@@ -28,6 +30,10 @@ let x = createBrowserRouter([
       { path: "MiniDrawer", element: <MiniDrawer /> },
       { path: "HomeDrawer", element: <HomeDrawer /> },
       { path: "home", element: <Home /> },
+      {path:"items",element:<ItemsLibrary/>},
+      // children: [{path:"/addItem",element:<AddItem/>}]},
+      { path: "addItem", element: <AddItem /> }
+     
     ],
   },
 ]);
