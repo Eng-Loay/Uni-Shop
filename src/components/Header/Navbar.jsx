@@ -314,7 +314,7 @@ function Navbar() {
                           />
                         </NavLink>
                         <NavLink
-                          to="/MiniDrawer"
+                          to="/MiniDrawer/home"
                           className="flex items-center justify-between mb-4"
                           onClick={() => setIsDropdownOpen(false)}
                         >

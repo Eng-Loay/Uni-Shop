@@ -270,7 +270,7 @@ function LibraryLogin() {
                       transition={{ delay: 0.7 }}
                       onClick={() => {
                         setTimeout(() => {
-                          window.location.href = "/MiniDrawer"; // Navigate to /dashboard
+                          window.location.href = "/MiniDrawer/home";
                         }, 100);
                       }}
                     >

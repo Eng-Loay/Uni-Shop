@@ -13,6 +13,7 @@ import MiniDrawer from "./components/Drawer/Drawer";
 import HomeDrawer from "./components/Drawer/HomeDrawer";
 import ItemsLibrary from "./pages/Auth/Library/ItemsLibrary/ItemsLibrary";
 import AddItem from "./pages/Auth/Library/AddItem/AddItem";
+import HomePage from "./pages/Library/Dashboard/HomePage";
 
 let x = createBrowserRouter([
   {
@@ -30,20 +31,34 @@ let x = createBrowserRouter([
       { path: "MiniDrawer", element: <MiniDrawer /> },
       { path: "HomeDrawer", element: <HomeDrawer /> },
       { path: "home", element: <Home /> },
-      {path:"items",element:<ItemsLibrary/>},
+      { path: "items", element: <ItemsLibrary /> },
       // children: [{path:"/addItem",element:<AddItem/>}]},
-      { path: "addItem", element: <AddItem /> }
-     
+      { path: "MiniDrawer/add-items", element: <AddItem /> },
+    ],
+  },
+  {
+    path: "/minidrawer",
+    element: <Layout />,
+    children: [
+      {
+        element: <MiniDrawer />,
+        children: [
+          { index: true, element: <Home /> },
+          { path: "home", element: <HomePage /> },
+          { path: "items", element: <ItemsLibrary /> },
+          { path: "items/additems", element: <AddItem /> },
+          // Add other nested routes as needed
+          { path: "orders", element: <div>Orders Page</div> },
+          { path: "information", element: <div>Information Page</div> },
+          { path: "logout", element: <div>Logout Page</div> },
+        ],
+      },
     ],
   },
 ]);
 
 function App() {
-  return (
-    <>
-      <RouterProvider router={x}></RouterProvider>
-    </>
-  );
+  return <RouterProvider router={x} />;
 }
 
 export default App;

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaChevronDown, FaChevronUp, FaBars } from "react-icons/fa";
+import { NavLink } from "react-router-dom";
 
 const FACULTIES = [
   {
@@ -56,15 +57,14 @@ function HomeDrawer() {
 
       {/* Aside Bar */}
       <aside
-        className={`shadow-lg transition-all duration-300 ${
+        className={`bg-white shadow-lg transition-all duration-300 ${
           isOpen ? "w-64" : "w-0"
         } relative`}
-        style={{ backgroundColor: "#001F54" }}
       >
         <nav className="p-4 space-y-6 ">
           {/* Categories Title */}
           {isOpen && (
-            <h2 className="text-center   text-lg font-semibold text-white mt-4">
+            <h2 className="text-center text-lg font-semibold text-gray-900 mt-4">
               Categories
             </h2>
           )}
@@ -77,7 +77,7 @@ function HomeDrawer() {
                   onClick={() => toggleFaculty(index)}
                   className={`w-full flex items-center ${
                     isOpen ? "px-3" : "justify-center"
-                  } py-2 text-sm rounded-md transition-colors text-gray-300 hover:bg-blue-700 hover:text-white`}
+                  } py-2 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 hover:text-gray-900`}
                 >
                   {isOpen && (
                     <>
@@ -95,12 +95,13 @@ function HomeDrawer() {
                 {isOpen && expandedFaculty === index && (
                   <div className="ml-4 mt-1 space-y-1">
                     {faculty.items.map((item, itemIdx) => (
-                      <button
+                      <NavLink
                         key={itemIdx}
-                        className="w-full flex items-center px-3 py-2 text-sm rounded-md transition-colors text-gray-300 hover:bg-blue-700 hover:text-white"
+                        to={item.path}
+                        className="w-full flex items-center px-3 py-2 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                       >
                         <span>{item.title}</span>
-                      </button>
+                      </NavLink>
                     ))}
                   </div>
                 )}

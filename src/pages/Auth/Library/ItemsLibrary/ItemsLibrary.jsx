@@ -1,7 +1,7 @@
-import axios from 'axios';
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import img1 from '../../../../assets/Home/Libraries/Garo.svg'
+import axios from "axios";
+import  { useState, useEffect } from "react";
+import {  useNavigate } from "react-router-dom";
+import img1 from "../../../../assets/Home/Libraries/Garo.svg";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function ItemsLibrary() {
@@ -11,14 +11,18 @@ function ItemsLibrary() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const userId = localStorage.getItem("userId");
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const itemsResponse = await axios.get(`${API_BASE_URL}api/v1/auth/library/${userId}/items`);
+        const itemsResponse = await axios.get(
+          `${API_BASE_URL}api/v1/auth/library/${userId}/items`
+        );
         setItems(itemsResponse.data.data);
 
-        const libraryDataResponse = await axios.get(`${API_BASE_URL}api/v1/auth/library/${userId}/info`);
+        const libraryDataResponse = await axios.get(
+          `${API_BASE_URL}api/v1/auth/library/${userId}/info`
+        );
         setLibraryData(libraryDataResponse.data.data);
 
         setLoading(false);
@@ -38,22 +42,23 @@ function ItemsLibrary() {
     <>
       <div className="container mx-auto max-w-7xl px-20 py-4">
         <div className="flex justify-between items-center">
-         <div className='flex items-center space-x-1'>
-         <img className="p-2 w-25 rounded-full" src={img1}/> 
-         <span className="p-2">{libraryData.username}</span>
-            </div>
-          
+          <div className="flex items-center space-x-1">
+            <img className="p-2 w-25 rounded-full" src={img1} />
+            <span className="p-2">{libraryData?.username}</span>
+          </div>
+
           <button
-            onClick={() => navigate('/addItem')}
+            onClick={() => navigate("/minidrawer/items/additems")}
             className="bg-blue-600 text-white rounded-lg px-3 py-2 shadow-md focus:ring-2 focus:ring-blue-500 hover:bg-white hover:text-black transition-all"
           >
             Add items
           </button>
-        
-
         </div>
       </div>
       <div className="container mx-auto max-w-7xl px-50">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Library Items</h1>
+        </div>
         <div className="flex justify-center items-center flex-wrap p-4">
           {items.map((item) => (
             <div
@@ -69,7 +74,9 @@ function ItemsLibrary() {
                     {item.name}
                   </h5>
                 </a>
-                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">{item.price}</p>
+                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">
+                  {item.price}
+                </p>
               </div>
             </div>
           ))}
