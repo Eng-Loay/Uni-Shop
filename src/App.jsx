@@ -11,8 +11,8 @@ import ForgotPasswordLibrary from "./pages/Auth/Library/ForgetPasswordLibrary/fo
 import Layout from "./components/Layout/Layout";
 import MiniDrawer from "./components/Drawer/Drawer";
 import HomeDrawer from "./components/Drawer/HomeDrawer";
-import ItemsLibrary from "./pages/Auth/Library/ItemsLibrary/ItemsLibrary";
-import AddItem from "./pages/Auth/Library/AddItem/AddItem";
+import ItemsLibrary from "./pages/Library/ItemsLibrary/ItemsLibrary";
+import AddItem from "./pages/Library/AddItem/AddItem";
 import HomePage from "./pages/Library/Dashboard/HomePage";
 
 let x = createBrowserRouter([

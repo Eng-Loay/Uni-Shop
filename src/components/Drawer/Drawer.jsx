@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { BarChart, FileText, Layers } from "lucide-react";
 import {
@@ -8,28 +8,23 @@ import {
   FaInfoCircle,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink } from "react-router-dom";
 
-
-// Class-based components for each page
-// class LogoutPage extends React.Component {
-//   render() {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-//         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
-//           <div className="text-center">
-//             <h1 className="text-3xl font-extrabold text-gray-900 mb-4">
-//               Logout
-//             </h1>
-//             <p className="text-gray-600">
-//               You have been logged out successfully.
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-// }
+// LogoutPage component
+const LogoutPage = () => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
+        <div className="text-center">
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-4">Logout</h1>
+          <p className="text-gray-600">
+            You have been logged out successfully.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const NAVIGATION = [
   {
@@ -58,8 +53,8 @@ const NAVIGATION = [
       {
         title: "Logout",
         icon: <FaSignOutAlt size={20} />,
-        path: "/logout",
-        action: true,
+        path: "/minidrawer/logout",
+        action: true, // Add this property
       },
     ],
   },
@@ -96,11 +91,7 @@ function MiniDrawer() {
   const [isOpen, setIsOpen] = useState(true);
   const [activeItem, setActiveItem] = useState("/home");
   const [isReportsExpanded, setIsReportsExpanded] = useState(false);
-  const [, setIsLoggedIn] = useState(true);
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [setActivePage] = useState("home");
-  const location = useLocation();
-  // const navigate = useNavigate();
+  const [isLoggedOut, setIsLoggedOut] = useState(false); // State to track logout
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -115,63 +106,26 @@ function MiniDrawer() {
       );
 
       if (response.status === 200) {
-        setIsLoggedIn(false);
         localStorage.removeItem("isLoggedIn");
         localStorage.removeItem("userId");
         localStorage.removeItem("role");
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1000);
+        setIsLoggedOut(true); // Set logout state to true
       }
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
 
-  useEffect(() => {
-    if (activeItem === "/logout") {
-      handleLogout();
-    }
-  }, [activeItem]);
-
-  useEffect(() => {
-    // Extract the current active page from the URL path
-    const path = location.pathname.split("/");
-    if (path.length >= 3) {
-      setActivePage(path[2]);
-    } else {
-      setActivePage("home");
-    }
-  }, [location]);
-
-  // const renderContent = useMemo(() => {
-  //   switch (activeItem) {
-  //     case "/home":
-  //       return <HomePage />;
-  //     case "/orders":
-  //       return <div>Orders Page</div>;
-  //     case "/items":
-  //       return <ItemsLibrary />;
-  //     case "/information":
-  //       return <div>Information Page</div>;
-  //     case "/logout":
-  //       return <LogoutPage />;
-  //     case "/reports/sales":
-  //       return <div>Sales Reports</div>;
-  //     case "/reports/traffic":
-  //       return <div>Traffic Reports</div>;
-  //     case "/integrations":
-  //       return <div>Integrations</div>;
-  //     default:
-  //       return <HomePage />;
-  //   }
-  // }, [activeItem]);
-
   const handleNavigationClick = (path) => {
     if (activeItem !== path) {
       setActiveItem(path);
     }
   };
+
+  // If logged out, show the LogoutPage
+  if (isLoggedOut) {
+    return <LogoutPage />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -195,9 +149,9 @@ function MiniDrawer() {
               <div className="space-y-1">
                 {section.items.map((item, itemIdx) => (
                   <div key={itemIdx}>
-                    {item.action ? (
+                    {item.action ? ( // Check for the action property
                       <button
-                        onClick={handleLogout}
+                        onClick={handleLogout} // Directly call handleLogout
                         className={`w-full flex items-center ${
                           isOpen ? "px-3" : "justify-center"
                         } py-2 text-sm rounded-md transition-colors 

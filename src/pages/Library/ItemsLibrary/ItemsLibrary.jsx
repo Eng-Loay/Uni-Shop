@@ -1,7 +1,7 @@
 import axios from "axios";
-import  { useState, useEffect } from "react";
-import {  useNavigate } from "react-router-dom";
-import img1 from "../../../../assets/Home/Libraries/Garo.svg";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import img1 from "../../../assets/Home/Libraries/Garo.svg";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function ItemsLibrary() {
