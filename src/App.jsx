@@ -14,6 +14,8 @@ import HomeDrawer from "./components/Drawer/HomeDrawer";
 import ItemsLibrary from "./pages/Library/ItemsLibrary/ItemsLibrary";
 import AddItem from "./pages/Library/AddItem/AddItem";
 import HomePage from "./pages/Library/Dashboard/HomePage";
+import { ItemsProvider } from "./pages/Library/ItemsContext/ItemsContext";
+import EditItem from "./pages/Library/EditItem/EditItem";
 
 let x = createBrowserRouter([
   {
@@ -41,12 +43,15 @@ let x = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        element: <MiniDrawer />,
+        element:
+        
+           <MiniDrawer />,
         children: [
           { index: true, element: <Home /> },
           { path: "home", element: <HomePage /> },
           { path: "items", element: <ItemsLibrary /> },
           { path: "items/additems", element: <AddItem /> },
+          { path: "items/edititems/:id", element: <EditItem /> },
           // Add other nested routes as needed
           { path: "orders", element: <div>Orders Page</div> },
           { path: "information", element: <div>Information Page</div> },
@@ -58,7 +63,12 @@ let x = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={x} />;
+  return( 
+    <ItemsProvider>
+  <RouterProvider router={x} />
+  </ItemsProvider>
+ 
+  );
 }
 
 export default App;
