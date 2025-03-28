@@ -266,7 +266,7 @@ function Navbar() {
                     {isLoggedIn ? (
                       <>
                         <NavLink
-                          to="/profile"
+                          to="/minidrawer/information"
                           className="flex items-center justify-between mb-4"
                           onClick={() => setIsDropdownOpen(false)}
                         >
