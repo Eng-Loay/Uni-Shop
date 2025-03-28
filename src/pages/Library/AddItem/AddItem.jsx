@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ItemsContext } from "../ItemsContext/ItemsContext";
 import FormData from "form-data";
 import axios from "axios";
-
+import Swal from "sweetalert2";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -76,6 +76,13 @@ try{
     setUploadSuccess(true);
     console.log("Upload successful:", response.data);
     addItem(response.data); 
+    Swal.fire({
+      title: "Item uploaded successfully!",
+      icon: "success",
+      timer: 2000, 
+      showConfirmButton: false,
+      draggable: true,
+    });
     navigate("/minidrawer/items"); 
   }
 }catch (error) {
@@ -84,7 +91,12 @@ try{
     response: error.response?.data,
     stack: error.stack
   });
-  alert(`Upload failed: ${error.response?.data?.message || 'Server error'}`);
+  Swal.fire({
+    icon: "error",
+    title: "Oops...",
+    text: `Upload failed: ${error.response?.data?.message || 'Server error'}`,
+    
+  });
 } finally {
   setIsUploading(false);
 }
@@ -92,8 +104,8 @@ try{
 
 
   return( <>
-  <div className="container mx-auto ">
-  <h2 className="font-bold text-xl">Item Details</h2>
+  <div className="container mx-auto max-w-7xl px-20 py-4 ">
+  <h2 className="font-bold text-xl mb-6 ">Item Details</h2>
 <div className="container mx-auto max-w-7xl px-20 py-4">
  
   {uploadSuccess&& (<div className="success-message">
@@ -101,9 +113,9 @@ try{
   </div>
  )}
  <div className="container mx-auto max-w-2xl mt-10">
- <form onSubmit={handleSubmit} className="max-w-md mx-auto">
+ <form onSubmit={handleSubmit} className="w-full">
  
-    <div className="grid md:grid-cols-2 md:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="relative z-0 w-full mb-5 group">
           <input type="text" name="name" id="name" className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value={formState.name} onChange={handleChange} required />
           <label htmlFor="name" className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Item name</label>
@@ -133,7 +145,7 @@ try{
     </div>
     
       </div>
-      <div className="grid md:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
       <div className="relative z-0 w-full mb-5 group">
       <select
         name="department"
@@ -182,7 +194,7 @@ try{
     
       </div>
     
-      <div className="grid md:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
       <div className="relative z-0 w-full mb-5 group">
           <input type="number" name="price" id="price" className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value={formState.price} onChange={handleChange} required />
           <label htmlFor="price" className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Price</label>
@@ -193,7 +205,7 @@ try{
         </div>
       </div>
     
-      <div className="grid md:grid-cols-2 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
       <div className="relative z-0 w-full mb-5 group">
           <input type="text" name="brand" id="brand" className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " value={formState.brand} onChange={handleChange} required />
           <label htmlFor="brand" className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Brand</label>
