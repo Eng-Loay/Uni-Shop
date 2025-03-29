@@ -1,5 +1,6 @@
-import React, { useContext } from 'react'
-import { createContext, useState, useEffect } from "react";
+/* eslint-disable react/prop-types */
+import { useContext } from 'react'
+import { createContext, useState } from "react";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;

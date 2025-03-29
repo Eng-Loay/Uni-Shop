@@ -11,12 +11,13 @@ import ForgotPasswordLibrary from "./pages/Auth/Library/ForgetPasswordLibrary/fo
 import Layout from "./components/Layout/Layout";
 import MiniDrawer from "./components/Drawer/Drawer";
 import HomeDrawer from "./components/Drawer/HomeDrawer";
-import ItemsLibrary from "./pages/Library/ItemsLibrary/ItemsLibrary";
-import AddItem from "./pages/Library/AddItem/AddItem";
+import ItemsLibrary from "./pages/Library/Items/ItemsLibrary/ItemsLibrary";
+import AddItem from "./pages/Library/Items/AddItem/AddItem";
 import HomePage from "./pages/Library/Dashboard/HomePage";
-import { ItemsProvider } from "./pages/Library/ItemsContext/ItemsContext";
-import EditItem from "./pages/Library/EditItem/EditItem";
+import { ItemsProvider } from "./pages/Library/Items/ItemsContext/ItemsContext";
+import EditItem from "./pages/Library/Items/EditItem/EditItem";
 import Information from "./pages/Library/Information/Information";
+import OrderTable from "./pages/Library/Order/order";
 
 let x = createBrowserRouter([
   {
@@ -52,7 +53,10 @@ let x = createBrowserRouter([
           { path: "items/additems", element: <AddItem /> },
           { path: "items/edititems/:id", element: <EditItem /> },
           // Add other nested routes as needed
-          { path: "orders", element: <div>Orders Page</div> },
+          {
+            path: "orders",
+            element: <OrderTable />,
+          },
           { path: "information", element: <Information /> },
           { path: "logout", element: <div>Logout Page</div> },
         ],

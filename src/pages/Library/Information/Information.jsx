@@ -1,15 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Pencil,
-  Mail,
-  FileText,
-  MapPin,
-  Book,
-  Check,
-  X,
-  Upload,
-} from "lucide-react";
+import { Pencil, Mail, MapPin, Book } from "lucide-react";
 import axios from "axios";
+import Loader from "../../../components/Loader/Loader";
+import Swal from "sweetalert2";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -121,7 +114,7 @@ function LibraryInformation() {
       if (editData.logo) {
         formData.append("logo", editData.logo);
       }
-      // Either use the response or remove the assignment
+
       await axios.patch(
         `${API_BASE_URL}api/v1/library/${userId}/edite_profile`,
         formData,
@@ -132,7 +125,6 @@ function LibraryInformation() {
         }
       );
 
-      // Handle success
       setLibraryData({
         ...libraryData,
         libraryName: editData.libraryName,
@@ -143,20 +135,27 @@ function LibraryInformation() {
           : libraryData.logo,
         license: editData.license ? licenseFileName : libraryData.license,
       });
+
+      await Swal.fire({
+        title: "Item updated successfully!",
+        icon: "success",
+        draggable: true,
+      });
+
       setIsEditing(false);
       window.location.href = "/minidrawer/information";
     } catch (err) {
-      console.error("Error saving data:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to update item!",
+      });
       setError(err.response?.data?.message || err.message);
     }
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto p-4 max-w-3xl flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error) {
