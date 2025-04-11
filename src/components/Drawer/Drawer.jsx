@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { BarChart, FileText, Layers } from "lucide-react";
 import {
   FaHome,
@@ -54,7 +55,7 @@ const NAVIGATION = [
         title: "Logout",
         icon: <FaSignOutAlt size={20} />,
         path: "/minidrawer/logout",
-        action: true, // Add this property
+        action: true,
       },
     ],
   },
@@ -92,7 +93,7 @@ function MiniDrawer() {
   const [activeItem, setActiveItem] = useState("/home");
   const [isReportsExpanded, setIsReportsExpanded] = useState(false);
   const [isLoggedOut, setIsLoggedOut] = useState(false); // State to track logout
-
+  const navigate = useNavigate();
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   const handleLogout = async () => {
@@ -109,7 +110,10 @@ function MiniDrawer() {
         localStorage.removeItem("isLoggedIn");
         localStorage.removeItem("userId");
         localStorage.removeItem("role");
-        setIsLoggedOut(true); // Set logout state to true
+        setIsLoggedOut(true);
+        setTimeout(() => {
+          navigate("/");
+        }, 3000);
       }
     } catch (error) {
       console.error("Error logging out:", error);
@@ -122,7 +126,6 @@ function MiniDrawer() {
     }
   };
 
-  // If logged out, show the LogoutPage
   if (isLoggedOut) {
     return <LogoutPage />;
   }

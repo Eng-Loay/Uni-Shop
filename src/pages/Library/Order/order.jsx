@@ -60,7 +60,7 @@ export default function OrderTable() {
           {
             params: {
               page: currentPage,
-              limit: 5, 
+              limit: 5,
             },
           }
         );
@@ -222,24 +222,33 @@ export default function OrderTable() {
                     >
                       <VisibilityIcon />
                     </IconButton>
-                    {order.status.toLowerCase() !== "cancelled" && (
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteOrder(order._id);
-                        }}
-                        sx={{
-                          color: "#d33",
-                          ml: 1,
-                          "&:hover": {
-                            cursor: "pointer",
-                            backgroundColor: "rgba(0, 0, 0, 0.04)",
-                          },
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    )}
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteOrder(order._id);
+                      }}
+                      sx={{
+                        color: "#d33",
+                        ml: 1,
+                        visibility:
+                          order.status.toLowerCase() === "cancelled"
+                            ? "hidden"
+                            : "visible",
+                        "&:hover": {
+                          cursor:
+                            order.status.toLowerCase() === "cancelled"
+                              ? "default"
+                              : "pointer",
+                          backgroundColor:
+                            order.status.toLowerCase() === "cancelled"
+                              ? "transparent"
+                              : "rgba(0, 0, 0, 0.04)",
+                        },
+                      }}
+                      disabled={order.status.toLowerCase() === "cancelled"}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))

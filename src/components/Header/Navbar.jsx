@@ -186,7 +186,7 @@ function Navbar() {
               <img
                 src={logo}
                 alt="Uni Shop Logo"
-                className="w-20 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
+                className="w-20 m-10 sm:m-0 md:m-0 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
               />
             </NavLink>
           </div>
