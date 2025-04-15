@@ -35,13 +35,35 @@ function HomePage() {
     { name: 'Afternoon', value: 40, color: '#4f7ac4' },
     { name: 'Evening', value: 30, color: '#1964e6' },
   ];
+
+  const barData = [
+    { day: "Sun", thisWeek: 600, lastWeek: 400 },
+    { day: "Mon", thisWeek: 800, lastWeek: 600 },
+    { day: "Tue", thisWeek: 750, lastWeek: 500 },
+    { day: "Wed", thisWeek: 650, lastWeek: 700 },
+    { day: "Thu", thisWeek: 700, lastWeek: 600 },
+    { day: "Fri", thisWeek: 900, lastWeek: 850 },
+    { day: "Sat", thisWeek: 100, lastWeek: 750 },
+  ];
+
+  const lineData = [
+    { month: "Jan", revenue: 400 },
+    { month: "Feb", revenue: 600 },
+    { month: "Mar", revenue: 500 },
+    { month: "Apr", revenue: 350 },
+    { month: "May", revenue: 450 },
+    { month: "Jun", revenue: 700 },
+  ];
+
   return (
     <>
-     <div className="container mx-auto max-w-7xl px-20 py-4">
+  
+     <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
+    
 
-<div className="flex flex-wrap items-center justify-center text-gray-900 dark:text-white p-2 gap-2">
+<div className="flex flex-wrap items-center justify-center text-gray-900 dark:text-white p-2 gap-4">
 {summaryCards.map(({ label, value, icon }, i) => (
-          <div key={i} className="bg-white rounded-xl shadow p-4 flex items-center gap-3">
+          <div key={i} className="bg-white rounded-xl shadow p-4 flex items-center gap-3 w-full sm:w-auto">
             <span className="text-[#001F54] text-3xl">{icon}</span>
             <div>
               <p className="text-sm text-gray-500">{label}</p>
@@ -150,9 +172,36 @@ function HomePage() {
   </div>
   
         </div>
-</div>
+  </div>
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-xl shadow p-4">
+          <h3 className="text-lg font-semibold mb-2">Customer Map</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={barData}>
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="thisWeek" fill="#001F54" name="This Week" />
+              <Bar dataKey="lastWeek" fill="#4f7ac4" name="Last Week" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-4">
+          <h3 className="text-lg font-semibold mb-2">Total Revenue</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={lineData}>
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="revenue" stroke="#1964e6" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-    
+      </div>
+     
     </>
   )
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {  useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loader from "../../../../components/Loader/Loader";
-import { Menu } from 'lucide-react';
+import {Eye , Menu } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -118,11 +118,79 @@ function ItemsLibrary() {
         </div>
       </div>
       <div className="container mx-auto max-w-7xl ">
-       <div className="flex flex-wrap justify-center">
+       <div className="flex flex-wrap justify-center gap-2">
       
           {items.map((item) => (
+             <div key={item._id} className="relative bg-white rounded-xl shadow-md overflow-hidden w-80">
+              <div className="absolute top-3 right-3">
+                  <button
+                    onClick={() => setMenuOpen(menuOpen === item._id ? null : item._id)}
+                    className="text-gray-500 hover:text-gray-700 "
+                  >
+                <Menu size={15}/>
+                  </button>
+                  {menuOpen === item._id && (
+                    <div className="absolute right-0 mt-2 w-24 bg-white border border-gray-200 rounded-lg shadow-lg">
+                      <button
+                        onClick={() => handleEdit(item._id)}
+                        className="block w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        className="block w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+             <div className=" h-57 w-full">
+               <img className="w-full h-full object-cover" src={item.product_pictures?.[0]?.secure_url}></img>
+             </div>
+       
+         
+             <div className="p-4">
+               <div className="flex justify-between items-start">
+                 <div>
+                   <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
+                   <p className="text-sm text-gray-500">{item.department}</p>
+                 </div>
+                 <button>
+                   <span className="material-icons text-gray-500">more_vert</span>
+                 </button>
+               </div>
+       
+               <div className="mt-4 space-y-1">
+                 <div className="flex justify-between text-sm">
+                   <span className="text-gray-400">Price</span>
+                   <span className="text-gray-900 font-medium">{item.price}EGP</span>
+                 </div>
+                 <div className="flex justify-between text-sm">
+                   <span className="text-gray-400">Inventory</span>
+                   <span className="text-gray-900 font-medium">45 units</span>
+                 </div>
+                 <div className="flex justify-between text-sm items-center">
+                   <span className="text-gray-400">Status</span>
+                   <span className={` px-2 py-0.5 rounded-full text-xs font-semibold ${
+            item.in_stock ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }`}>
+            {item.in_stock ? "In Stock" : "Out of Stock"}
+          </span>
+                  
+                 </div>
+               </div>
+       
+               
+               <button className="mt-4 w-full flex items-center justify-center gap-2 border border-gray-200 py-2 rounded-lg hover:bg-gray-100">
+                 <span><Eye size={18}/></span>
+                 <span className="text-sm font-medium text-gray-700">View Details</span>
+               </button>
+             </div>
+           </div>
         
-<div key={item._id} className="relative w-full max-w-sm m-2 mt-20 bg-white border border-gray-200 rounded-3xl shadow-sm dark:bg-gray-800 dark:border-gray-700 sm:w-full md:1/2 lg:w-1/3">
+/* <div key={item._id} className="relative w-full max-w-sm m-2 mt-20 bg-white border border-gray-200 rounded-3xl shadow-sm dark:bg-gray-800 dark:border-gray-700 sm:w-full md:1/2 lg:w-1/3">
 
 <div className="absolute top-3 right-3">
                   <button
@@ -158,7 +226,7 @@ function ItemsLibrary() {
             {item.in_stock ? "In Stock" : "Out of Stock"}
           </span>
   </div>
-</div> 
+</div>  */
  ))}
         </div>
         <div className="flex justify-center mt-6 space-x-2">
