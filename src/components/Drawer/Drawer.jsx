@@ -131,7 +131,7 @@ function MiniDrawer() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex  bg-gray-100">
       {/* Sidebar */}
       <aside
         className={`shadow-lg transition-all duration-300 ${
@@ -229,7 +229,7 @@ function MiniDrawer() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto p-6">
+      <main className="flex-1 p-6">
         <Outlet />
       </main>
     </div>

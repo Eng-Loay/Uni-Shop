@@ -62,7 +62,7 @@ function HomePage() {
 
   return (
     <>
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
         <div className="flex flex-wrap items-center justify-center text-gray-900  p-2 gap-4">
           {summaryCards.map(({ label, value, icon }, i) => (
             <div
