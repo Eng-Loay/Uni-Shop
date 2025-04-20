@@ -9,7 +9,7 @@ function Bestseller() {
   return (
     <div className="m-0 p-0 flex flex-col items-start w-full mb-40">
       {/* Header Section */}
-      <div className="flex items-center pl-[5%] lg:pl-[300px] mt-5">
+      <div className="flex items-center pl-[5%]  mt-5">
         <p
           className="text-[#3E3B3B] text-[20px] lg:text-[28px] font-sans p-5 m-0"
           style={{ fontFamily: "Inter" }}
@@ -20,7 +20,7 @@ function Bestseller() {
       </div>
 
       {/* Product Grid */}
-      <div className="mt-20 px-20 ml-4 lg:ml-[200px] flex flex-row flex-wrap justify-center lg:justify-start gap-7">
+      <div className="mt-20 px-10 mx-auto  flex flex-row flex-wrap justify-center lg:justify-start gap-7">
         {/* First Image and Text */}
         <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
           <img src={pencil} alt="Example Image" className="w-3/4 h-auto" />
@@ -81,6 +81,25 @@ function Bestseller() {
           </div>
         </div>
 
+        {/* Fourth Image and Text */}
+        <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
+          <img src={flask} alt="Fourth Image" className="w-3/4 h-auto" />
+          <p
+            className="text-[#3E3B3B] text-[20px] font-normal mt-4 text-center"
+            style={{ fontFamily: "Inter", fontWeight: 400 }}
+          >
+            Glass Flask
+          </p>
+          <p
+            className="text-[#3E3B3B] text-[18px] font-bold mt-2"
+            style={{ fontFamily: "Inter" }}
+          >
+            130 LE
+          </p>
+          <div style={{ marginTop: "10px" }}>
+            <Details />
+          </div>
+        </div>
         {/* Fourth Image and Text */}
         <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
           <img src={flask} alt="Fourth Image" className="w-3/4 h-auto" />

@@ -7,7 +7,7 @@ function Libraries() {
   return (
     <div className="m-0 p-0 flex flex-col items-start w-full">
       {/* Group "LIBRARIES" and the arrow icon into one div */}
-      <div className="flex items-center pl-[5%] lg:pl-[300px] mt-5">
+      <div className="flex items-center pl-[5%]  mt-5">
         <p
           className="text-[#3E3B3B] text-[24px] lg:text-[28px] font-sans p-5 m-0"
           style={{ fontFamily: "Inter" }}
@@ -18,7 +18,7 @@ function Libraries() {
       </div>
 
       {/* Photos LIBRARIES */}
-      <div className="flex flex-col lg:flex-row gap-4 p-[5%] lg:pl-[300px]">
+      <div className="flex flex-col lg:flex-row gap-4 p-[5%]">
         {/* KamalSaad Image */}
         <div className="w-full lg:w-auto">
           <img src={KamalSaad} alt="KamalSaad" className="w-full lg:w-auto" />

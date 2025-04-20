@@ -7,7 +7,7 @@ function Packages() {
   return (
     <div className="m-0 p-0 flex flex-col items-start w-full">
       {/* Group "PACKAGES" and the arrow icon into one div */}
-      <div className="flex items-center pl-[5%] lg:pl-[300px] mt-5">
+      <div className="flex items-center pl-[5%]  mt-5">
         <p
           className="text-[#3E3B3B] text-[24px] lg:text-[28px] font-inter p-5 m-0 "
           style={{ fontFamily: "Inter" }}
