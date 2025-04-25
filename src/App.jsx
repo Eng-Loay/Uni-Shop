@@ -56,7 +56,7 @@ let x = createBrowserRouter([
           {
             path: "orders",
             element: <OrderTable />,
-          },
+          }, 
           { path: "information", element: <Information /> },
           { path: "logout", element: <div>Logout Page</div> },
         ],

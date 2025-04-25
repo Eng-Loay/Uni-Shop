@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavLink } from "react-router-dom";
-
+import axios from "axios";
 import {
   Mail,
   Lock,
@@ -20,16 +20,21 @@ function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    firstname: "",
+    lastname: "",
+    username:"",
     email: "",
     password: "",
+    passwordConfirm:"",
     faculty: "",
-    dateOfBirth: "",
+    birthdate: "",
   });
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [passwordMatchError, setPasswordMatchError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -56,16 +61,62 @@ function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (currentStep === 2 && formData.password !== formData.passwordConfirm) {
+      setPasswordMatchError(true);
+      return;
+    }
     if (currentStep < 3) {
       setCurrentStep((prev) => prev + 1);
     } else {
       setIsSubmitting(true);
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setIsSubmitting(false);
-      setShowSuccess(true);
+      
+      // await new Promise((resolve) => setTimeout(resolve, 2000));
+      // setIsSubmitting(false);
+      // setShowSuccess(true);
+      try {
+        // Create FormData object
+        const formDataToSend = new FormData();
+        formDataToSend.append("firstname", formData.firstname);
+        formDataToSend.append("lastname", formData.lastname);
+        formDataToSend.append("username", formData.username);
+        formDataToSend.append("email", formData.email);
+        formDataToSend.append("password", formData.password);
+        formDataToSend.append("passwordConfirm", formData.passwordConfirm);
+        formDataToSend.append("faculty",formData.faculty);
+        formDataToSend.append("birthdate",formData.birthdate);
+
+        // Make API call to the signup endpoint
+        const response = await axios.post(
+          `${API_BASE_URL}api/v1/auth/student/signup`,
+          formDataToSend,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        // Handle successful response
+        if (response.status === 201) {
+          setShowSuccess(true);
+        }
+      } catch (error) {
+        // Handle API errors
+        if (error.response) {
+          setErrorMessage(
+            error.response.data.message ||
+              "An error occurred during registration."
+          );
+        } else {
+          setErrorMessage("Network error. Please try again.");
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
+
 
   const slideVariants = {
     enter: (direction) => ({
@@ -138,7 +189,7 @@ function Signup() {
                   <input
                     type="text"
                     name="firstName"
-                    value={formData.firstName}
+                    value={formData.firstname}
                     onChange={handleInputChange}
                     className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
                     placeholder="Loay"
@@ -159,7 +210,7 @@ function Signup() {
                   <input
                     type="text"
                     name="lastName"
-                    value={formData.lastName}
+                    value={formData.lastname}
                     onChange={handleInputChange}
                     className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
                     placeholder="Essam"
@@ -172,7 +223,7 @@ function Signup() {
                 </div>
               </div>
             </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="relative">
               <label className="text-white text-sm font-medium mb-2 block">
                 Email Address
@@ -192,6 +243,27 @@ function Signup() {
                   size={20}
                 />
               </div>
+            </div>
+            <div className="relative">
+              <label className="text-white text-sm font-medium mb-2 block">
+                User Name
+              </label>
+              <div className="relative group">
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                  placeholder="loay12"
+                  required
+                />
+                <User
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                  size={20}
+                />
+              </div>
+            </div>
             </div>
           </motion.div>
         );
@@ -213,7 +285,7 @@ function Signup() {
             <h2 className="text-3xl font-bold text-white mb-8">
               Secure your account 🔒
             </h2>
-
+            <div>
             <div className="relative">
               <label className="text-white text-sm font-medium mb-2 block">
                 Password
@@ -228,6 +300,8 @@ function Signup() {
                   placeholder="Create a strong password"
                   required
                 />
+                
+                
                 <Lock
                   className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
                   size={20}
@@ -269,6 +343,38 @@ function Signup() {
                   </span>
                 </p>
               </div>
+            </div>
+            <div className="relative mt-6">
+  <label className="text-white text-sm font-medium mb-2 block">
+    Confirm Password
+  </label>
+  <div className="relative group">
+    <input
+      type={showPassword ? "text" : "password"}
+      name="passwordConfirm"
+      value={formData.passwordConfirm}
+      onChange={handleInputChange}
+      className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-12 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+      placeholder="Re-enter your password"
+      required
+    />
+    <Lock
+      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+      size={20}
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-400 focus:outline-none transition-colors duration-200"
+    >
+      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+    </button>
+  </div>
+  {passwordMatchError && (
+    <p className="text-sm text-red-400 mt-2">Passwords don't match</p>
+  )}
+</div>
+
             </div>
           </motion.div>
         );
@@ -364,8 +470,8 @@ function Signup() {
               <div className="relative group">
                 <input
                   type="date"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
+                  name="birthdate"
+                  value={formData.birthdate}
                   onChange={handleInputChange}
                   className="w-full h-14 rounded-xl bg-white/10 text-white text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50 calendar-white"
                   required

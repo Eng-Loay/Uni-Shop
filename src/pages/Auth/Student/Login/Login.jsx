@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
 import {
   Mail,
   Lock,
@@ -9,8 +10,10 @@ import {
   BookOpen,
   LogIn,
   GraduationCap,
+  AlertCircle,
 } from "lucide-react";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,6 +23,8 @@ function Login() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -27,16 +32,48 @@ function Login() {
       ...prev,
       [name]: value,
     }));
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // reset UI state
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setShowSuccess(true);
+    setError(null);
+    setShowSuccess(false);
+  
+    try {
+      const { data } = await axios.post(
+        `${API_BASE_URL}api/v1/auth/student/login`,
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+  
+      // save data & tokens as before
+      setUserData(data.data);
+      if (data.data?.id) {
+        localStorage.setItem("userId", data.data.id);
+        localStorage.setItem("role", data.data.role);
+      }
+  
+      // success overlay
+      setShowSuccess(true);
+    } catch (err) {
+      // extract message if the backend sent one, else fallback
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Login failed. Please check your credentials and try again.";
+      setError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+  
 
   const successVariants = {
     hidden: {
@@ -78,6 +115,19 @@ function Login() {
                 <h2 className="text-3xl font-bold text-white mb-8">
                   Welcome back Student! 👋
                 </h2>
+                
+                {/* Error Message */}
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center space-x-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 mb-4"
+                  >
+                    <AlertCircle className="w-5 h-5" />
+                    <span>{error}</span>
+                  </motion.div>
+                )}
                 <div className="space-y-6">
                   {/* Email Field */}
                   <div className="relative">
@@ -157,7 +207,8 @@ function Login() {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"
+                  />
                 ) : (
                   <>
                     <span>Sign In</span>
