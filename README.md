@@ -1,8 +1,39 @@
-# React + Vite
+# E-Commerce React & Vite Starter
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A production-ready boilerplate for building fast, scalable e-commerce frontends with React, Vite, Tailwind CSS, and seamless REST-API integration (Axios/Fetch) to a Node.js backend.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Key Features
+
+- **Blazing Fast Dev Experience**  
+  – Vite’s lightning-fast HMR and build pipeline  
+- **Utility-First Styling**  
+  – Tailwind CSS configured out-of-the-box for rapid UI composition  
+- **API Integration**  
+  – Axios instance pre-configured for your Node.js RESTful API  
+  – Fallback Fetch utilities for simple GET requests  
+- **Type-Safe State Management**  
+  – (Optional) Switch in Redux Toolkit or Zustand for global state  
+- **Production-Ready Builds**  
+  – Optimized bundling, code-splitting, and asset hashing  
+- **ESLint & Prettier**  
+  – Opinionated linting and formatting rules to keep your codebase consistent  
+
+---
+
+## 📦 Tech Stack
+
+- **🔧 Build**: [Vite](https://vitejs.dev/)  
+- **⚛️ UI**: [React 18+](https://reactjs.org/)  
+- **🎨 Styles**: [Tailwind CSS](https://tailwindcss.com/)  
+- **📡 HTTP**: [Axios](https://axios-http.com/) & built-in Fetch API  
+- **🖥️ Backend (example)**: Node.js + Express REST API  
+---
+
+## 🛠 Installation & Setup
+
+1. **Clone the repo**  
+   ```bash
+   [git clone https://github.com/<YOUR_ORG>/ecommerce-react-vite.git](https://github.com/Eng-Loay/Uni-Shop.git)
+   cd ecommerce-react-vite
