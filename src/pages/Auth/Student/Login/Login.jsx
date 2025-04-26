@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Mail,
@@ -15,36 +16,31 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 function Login() {
+  /* ─────────── state ─────────── */
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    role: "student", // Default role
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
-  const [userData, setUserData] = useState(null);
+  const [userRole, setUserRole] = useState(""); // ✅ ADDED
 
+  const navigate = useNavigate();
+
+  /* ─────────── handlers ─────────── */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // reset UI state
     setIsSubmitting(true);
     setError(null);
     setShowSuccess(false);
-  
+
     try {
-      const { data } = await axios.post(
+      const { data, status } = await axios.post(
         `${API_BASE_URL}api/v1/auth/student/login`,
         formData,
         {
@@ -52,18 +48,31 @@ function Login() {
           withCredentials: true,
         }
       );
-  
-      // save data & tokens as before
-      setUserData(data.data);
-      if (data.data?.id) {
-        localStorage.setItem("userId", data.data.id);
-        localStorage.setItem("role", data.data.role);
+
+      if (status === 200) {
+        const role = (data.data?.role || "").toLowerCase();
+        const id = data.data?.id;
+
+        if (id) localStorage.setItem("userId", id);
+        if (role) localStorage.setItem("role", role);
+
+        setUserRole(role); // ✅ now legal
+        setShowSuccess(true);
+
+        /* ─── role-based redirect ─── */
+        switch (role) {
+          case "student":
+            console.log("Student role detected");
+            navigate("/login"); // ✅ forward, not back
+            break;
+          case "admin":
+            navigate("/admin");
+            break;
+          default:
+            navigate("/");
+        }
       }
-  
-      // success overlay
-      setShowSuccess(true);
     } catch (err) {
-      // extract message if the backend sent one, else fallback
       const msg =
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -73,7 +82,6 @@ function Login() {
       setIsSubmitting(false);
     }
   };
-  
 
   const successVariants = {
     hidden: {
@@ -115,7 +123,7 @@ function Login() {
                 <h2 className="text-3xl font-bold text-white mb-8">
                   Welcome back Student! 👋
                 </h2>
-                
+
                 {/* Error Message */}
                 {error && (
                   <motion.div
@@ -207,8 +215,7 @@ function Login() {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"
-                  />
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>Sign In</span>
@@ -269,7 +276,12 @@ function Login() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
-                      onClick={() => window.location.reload()}
+                      onClick={() => {
+                        const role = localStorage.getItem("role");
+                        if (role === "student") navigate("/student");
+                        else if (role === "admin") navigate("/admin");
+                        else navigate("/");
+                      }}
                     >
                       Continue to Dashboard
                     </motion.button>

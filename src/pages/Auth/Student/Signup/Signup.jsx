@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavLink } from "react-router-dom";
@@ -22,10 +23,10 @@ function Signup() {
   const [formData, setFormData] = useState({
     firstname: "",
     lastname: "",
-    username:"",
+    username: "",
     email: "",
     password: "",
-    passwordConfirm:"",
+    passwordConfirm: "",
     faculty: "",
     birthdate: "",
   });
@@ -58,65 +59,48 @@ function Signup() {
       setCurrentStep((prev) => prev - 1);
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (currentStep === 2 && formData.password !== formData.passwordConfirm) {
       setPasswordMatchError(true);
       return;
     }
+
     if (currentStep < 3) {
-      setCurrentStep((prev) => prev + 1);
-    } else {
-      setIsSubmitting(true);
-      // Simulate API call
-      
-      // await new Promise((resolve) => setTimeout(resolve, 2000));
-      // setIsSubmitting(false);
-      // setShowSuccess(true);
-      try {
-        // Create FormData object
-        const formDataToSend = new FormData();
-        formDataToSend.append("firstname", formData.firstname);
-        formDataToSend.append("lastname", formData.lastname);
-        formDataToSend.append("username", formData.username);
-        formDataToSend.append("email", formData.email);
-        formDataToSend.append("password", formData.password);
-        formDataToSend.append("passwordConfirm", formData.passwordConfirm);
-        formDataToSend.append("faculty",formData.faculty);
-        formDataToSend.append("birthdate",formData.birthdate);
+      setCurrentStep((p) => p + 1);
+      return;
+    }
 
-        // Make API call to the signup endpoint
-        const response = await axios.post(
-          `${API_BASE_URL}api/v1/auth/student/signup`,
-          formDataToSend,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        firstname: formData.firstname, // ↓ all-lowercase
+        lastname: formData.lastname,
+        username: formData.username,
+        email: formData.email,
+        faculty: formData.faculty,
+        birthdate: formData.birthdate,
+        password: formData.password,
+        passwordConfirm: formData.passwordConfirm, // ← capital “C”
+      };
 
-        // Handle successful response
-        if (response.status === 201) {
-          setShowSuccess(true);
-        }
-      } catch (error) {
-        // Handle API errors
-        if (error.response) {
-          setErrorMessage(
-            error.response.data.message ||
-              "An error occurred during registration."
-          );
-        } else {
-          setErrorMessage("Network error. Please try again.");
-        }
-      } finally {
-        setIsSubmitting(false);
+      const res = await axios.post(
+        `${API_BASE_URL}api/v1/auth/student/signup`,
+        payload // axios will send JSON by default
+      );
+
+      if (res.status === 201) setShowSuccess(true);
+    } catch (err) {
+      if (err.response?.data?.message) {
+        setErrorMessage(err.response.data.message);
+      } else {
+        setErrorMessage("Network error. Please try again.");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
 
   const slideVariants = {
     enter: (direction) => ({
@@ -188,7 +172,7 @@ function Signup() {
                 <div className="relative group">
                   <input
                     type="text"
-                    name="firstName"
+                    name="firstname"
                     value={formData.firstname}
                     onChange={handleInputChange}
                     className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
@@ -209,7 +193,7 @@ function Signup() {
                 <div className="relative group">
                   <input
                     type="text"
-                    name="lastName"
+                    name="lastname"
                     value={formData.lastname}
                     onChange={handleInputChange}
                     className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
@@ -224,46 +208,46 @@ function Signup() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="relative">
-              <label className="text-white text-sm font-medium mb-2 block">
-                Email Address
-              </label>
-              <div className="relative group">
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
-                  placeholder="loayessam@example.com"
-                  required
-                />
-                <Mail
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
-                  size={20}
-                />
+              <div className="relative">
+                <label className="text-white text-sm font-medium mb-2 block">
+                  Email Address
+                </label>
+                <div className="relative group">
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                    placeholder="loayessam@example.com"
+                    required
+                  />
+                  <Mail
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                    size={20}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="relative">
-              <label className="text-white text-sm font-medium mb-2 block">
-                User Name
-              </label>
-              <div className="relative group">
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
-                  placeholder="loay12"
-                  required
-                />
-                <User
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
-                  size={20}
-                />
+              <div className="relative">
+                <label className="text-white text-sm font-medium mb-2 block">
+                  User Name
+                </label>
+                <div className="relative group">
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                    placeholder="loay12"
+                    required
+                  />
+                  <User
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                    size={20}
+                  />
+                </div>
               </div>
-            </div>
             </div>
           </motion.div>
         );
@@ -286,95 +270,95 @@ function Signup() {
               Secure your account 🔒
             </h2>
             <div>
-            <div className="relative">
-              <label className="text-white text-sm font-medium mb-2 block">
-                Password
-              </label>
-              <div className="relative group">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-12 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
-                  placeholder="Create a strong password"
-                  required
-                />
-                
-                
-                <Lock
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
-                  size={20}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-400 focus:outline-none transition-colors duration-200"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-
-              <div className="mt-4">
-                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${passwordStrength}%` }}
-                    transition={{ duration: 0.3 }}
+              <div className="relative">
+                <label className="text-white text-sm font-medium mb-2 block">
+                  Password
+                </label>
+                <div className="relative group">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-12 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                    placeholder="Create a strong password"
+                    required
                   />
-                </div>
-                <p className="text-sm text-gray-400 mt-2">
-                  Password strength:{" "}
-                  <span
-                    className={
-                      passwordStrength < 50
-                        ? "text-red-400"
-                        : passwordStrength < 75
-                        ? "text-yellow-400"
-                        : "text-green-400"
-                    }
-                  >
-                    {passwordStrength < 50
-                      ? "Weak"
-                      : passwordStrength < 75
-                      ? "Medium"
-                      : "Strong"}
-                  </span>
-                </p>
-              </div>
-            </div>
-            <div className="relative mt-6">
-  <label className="text-white text-sm font-medium mb-2 block">
-    Confirm Password
-  </label>
-  <div className="relative group">
-    <input
-      type={showPassword ? "text" : "password"}
-      name="passwordConfirm"
-      value={formData.passwordConfirm}
-      onChange={handleInputChange}
-      className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-12 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
-      placeholder="Re-enter your password"
-      required
-    />
-    <Lock
-      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
-      size={20}
-    />
-    <button
-      type="button"
-      onClick={() => setShowPassword(!showPassword)}
-      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-400 focus:outline-none transition-colors duration-200"
-    >
-      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-    </button>
-  </div>
-  {passwordMatchError && (
-    <p className="text-sm text-red-400 mt-2">Passwords don't match</p>
-  )}
-</div>
 
+                  <Lock
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                    size={20}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-400 focus:outline-none transition-colors duration-200"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+
+                <div className="mt-4">
+                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${passwordStrength}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-400 mt-2">
+                    Password strength:{" "}
+                    <span
+                      className={
+                        passwordStrength < 50
+                          ? "text-red-400"
+                          : passwordStrength < 75
+                            ? "text-yellow-400"
+                            : "text-green-400"
+                      }
+                    >
+                      {passwordStrength < 50
+                        ? "Weak"
+                        : passwordStrength < 75
+                          ? "Medium"
+                          : "Strong"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div className="relative mt-6">
+                <label className="text-white text-sm font-medium mb-2 block">
+                  Confirm Password
+                </label>
+                <div className="relative group">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="passwordConfirm"
+                    value={formData.passwordConfirm}
+                    onChange={handleInputChange}
+                    className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-12 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                    placeholder="Re-enter your password"
+                    required
+                  />
+                  <Lock
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                    size={20}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-400 focus:outline-none transition-colors duration-200"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {passwordMatchError && (
+                  <p className="text-sm text-red-400 mt-2">
+                    Passwords do not match
+                  </p>
+                )}
+              </div>
             </div>
           </motion.div>
         );
@@ -621,7 +605,7 @@ function Signup() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.8 }}
                     >
-                      Welcome to the Library!
+                      Welcome to the Web Site!
                     </motion.h3>
                     <motion.p
                       className="text-gray-400 mb-8"
@@ -636,7 +620,7 @@ function Signup() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.2 }}
-                      onClick={() => window.location.reload()}
+                      onClick={() => (window.location.href = "/login")}
                     >
                       Get Started
                     </motion.button>

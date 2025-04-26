@@ -1,16 +1,23 @@
+/* eslint-disable react/prop-types */
 import "./App.css";
-import Home from "./pages/Home/Home";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Home from "./pages/Home/Home";
 import Signup from "./pages/Auth/Student/Signup/Signup";
 import Login from "./pages/Auth/Student/Login/Login";
 import SignupLibrary from "./pages/Auth/Library/SingupLibrary/signuplibrary";
 import LibraryLogin from "./pages/Auth/Library/LoginLibrary/loginlibrary";
 import ForgotPassword from "./pages/Auth/Student/ForgetPassword/forgetpassword";
 import ForgotPasswordLibrary from "./pages/Auth/Library/ForgetPasswordLibrary/forgetpasswordlibrary";
+
 import Layout from "./components/Layout/Layout";
 import MiniDrawer from "./components/Drawer/Drawer";
 import HomeDrawer from "./components/Drawer/HomeDrawer";
+
 import ItemsLibrary from "./pages/Library/Items/ItemsLibrary/ItemsLibrary";
 import AddItem from "./pages/Library/Items/AddItem/AddItem";
 import HomePage from "./pages/Library/Dashboard/HomePage";
@@ -19,30 +26,44 @@ import EditItem from "./pages/Library/Items/EditItem/EditItem";
 import Information from "./pages/Library/Information/Information";
 import OrderTable from "./pages/Library/Order/order";
 
-let x = createBrowserRouter([
+// Authentication guard using cookie-based session
+function RequireAuth({ children }) {
+  // Adjust 'sessionId' to match your actual session cookie name
+  const hasSession = document.cookie
+    .split(";")
+    .some((cookie) => cookie.trim().startsWith("sessionId="));
+  if (!hasSession) {
+    // No session cookie found, redirect to login
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+// Router configuration
+const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
-      // { path: " ", element: <Home /> },
       { path: "signuplibrary", element: <SignupLibrary /> },
       { path: "loginlibrary", element: <LibraryLogin /> },
       { path: "forgetpasswordlibrary", element: <ForgotPasswordLibrary /> },
       { path: "signup", element: <Signup /> },
       { path: "login", element: <Login /> },
       { path: "forgetpassword", element: <ForgotPassword /> },
-      { path: "MiniDrawer", element: <MiniDrawer /> },
-      { path: "HomeDrawer", element: <HomeDrawer /> },
-      { path: "home", element: <Home /> },
+      { path: "homedrawer", element: <HomeDrawer /> },
       { path: "items", element: <ItemsLibrary /> },
-      // children: [{path:"/addItem",element:<AddItem/>}]},
-      { path: "MiniDrawer/add-items", element: <AddItem /> },
+      { path: "add-items", element: <AddItem /> },
     ],
   },
   {
     path: "/minidrawer",
-    element: <Layout />,
+    element: (
+      <RequireAuth>
+        <Layout />
+      </RequireAuth>
+    ),
     children: [
       {
         element: <MiniDrawer />,
@@ -52,13 +73,12 @@ let x = createBrowserRouter([
           { path: "items", element: <ItemsLibrary /> },
           { path: "items/additems", element: <AddItem /> },
           { path: "items/edititems/:id", element: <EditItem /> },
-          // Add other nested routes as needed
-          {
-            path: "orders",
-            element: <OrderTable />,
-          }, 
+          { path: "orders", element: <OrderTable /> },
           { path: "information", element: <Information /> },
-          { path: "logout", element: <div>Logout Page</div> },
+          {
+            path: "logout",
+            element: <Navigate to="/login" replace />, // On logout, clear session cookie on server side
+          },
         ],
       },
     ],
@@ -68,7 +88,7 @@ let x = createBrowserRouter([
 function App() {
   return (
     <ItemsProvider>
-      <RouterProvider router={x} />
+      <RouterProvider router={router} />
     </ItemsProvider>
   );
 }
