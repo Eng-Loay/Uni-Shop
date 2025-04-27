@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
@@ -15,159 +16,124 @@ import privacyIcon from "../../assets/Header/privacy.svg";
 import helpIcon from "../../assets/Header/help.svg";
 import languageIcon from "../../assets/Header/language.svg";
 import logoutIcon from "../../assets/Header/logout.svg";
+
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function Navbar() {
+  /* Role & auth helpers */
+  const userRole = localStorage.getItem("role"); // 'library' | 'user' | 'admin'
+  const isLibrary = userRole === "library";
+
+  /* Component state */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024); // Adjusted for tablets
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("isLoggedIn") === "true"
   );
-  const userRole = localStorage.getItem("role");
-  const isLibrary = userRole === "library";
-
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
   const sidebarRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Check login status on component mount
+  /* 1 ▪ Check login status on mount */
   useEffect(() => {
     const checkLoginStatus = async () => {
+      const endpoint =
+        userRole === "library"
+          ? "auth/library/library-data"
+          : "auth/student/user-data"; // users & admins share this
+
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}api/v1/auth/library/library-data`,
-          {
-            withCredentials: true,
-          }
+        const { status } = await axios.get(
+          `${API_BASE_URL}api/v1/${endpoint}`,
+          { withCredentials: true }
         );
 
-        if (response.status === 200) {
+        if (status === 200) {
           setIsLoggedIn(true);
-          localStorage.setItem("isLoggedIn", "true"); // Save login state
+          localStorage.setItem("isLoggedIn", "true");
         } else {
           setIsLoggedIn(false);
-          localStorage.removeItem("isLoggedIn"); // Clear login state
+          localStorage.removeItem("isLoggedIn");
         }
-      } catch (error) {
-        if (error.response && error.response.status === 404) {
-          console.error("Endpoint not found:", error.response.data);
-        } else {
-          console.error("Error checking login status:", error);
-        }
+      } catch (err) {
+        console.error(
+          "Error checking login status:",
+          err?.response?.data ?? err
+        );
         setIsLoggedIn(false);
-        localStorage.removeItem("isLoggedIn"); // Clear login state
+        localStorage.removeItem("isLoggedIn");
       }
     };
 
     checkLoginStatus();
-  }, []);
+  }, []); // run once
 
-  // Handle window resize for screen size detection
+  /* 2 ▪ Track viewport size */
   useEffect(() => {
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth <= 1024); // Adjusted for tablets
-    };
+    const handleResize = () => setIsSmallScreen(window.innerWidth <= 1024);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Disable body scroll when sidebar is open
+  /* 3 ▪ Freeze scroll while sidebar open */
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    document.body.style.overflow = isMenuOpen ? "hidden" : "auto";
     return () => {
       document.body.style.overflow = "auto";
     };
   }, [isMenuOpen]);
 
-  // Handle click outside sidebar and dropdown
+  /* 4 ▪ Close sidebar / dropdown when clicking outside */
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        closeMenu();
-      }
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target))
+        setIsMenuOpen(false);
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
         setIsDropdownOpen(false);
-      }
     };
-
     if (isMenuOpen || isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen, isDropdownOpen]);
 
-  // Close dropdown on scroll
+  /* 5 ▪ Close dropdown on scroll */
   useEffect(() => {
-    const handleScroll = () => {
-      if (isDropdownOpen) {
-        setIsDropdownOpen(false);
-      }
-    };
-
+    const handleScroll = () => isDropdownOpen && setIsDropdownOpen(false);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isDropdownOpen]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  const handleMouseEnter = () => {
-    if (!isSmallScreen) {
-      setIsDropdownOpen(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!isSmallScreen) {
-      setIsDropdownOpen(false);
-    }
-  };
-
-  const toggleDropdown = () => {
-    if (isSmallScreen) {
-      setIsDropdownOpen(!isDropdownOpen);
-    }
-  };
-
-  const toggleLanguageDropdown = () => {
+  /* UI handlers */
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleDropdown = () =>
+    isSmallScreen && setIsDropdownOpen(!isDropdownOpen);
+  const handleMouseEnter = () => !isSmallScreen && setIsDropdownOpen(true);
+  const handleMouseLeave = () => !isSmallScreen && setIsDropdownOpen(false);
+  const toggleLanguageDropdown = () =>
     setLanguageDropdownOpen(!languageDropdownOpen);
-  };
 
-  const handleLanguageSelect = (language) => {
-    console.log(`Selected language: ${language}`);
-    setLanguageDropdownOpen(false); // Close the language dropdown
+  const handleLanguageSelect = (lang) => {
+    console.log(`Selected language: ${lang}`);
+    setLanguageDropdownOpen(false);
   };
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post(
+      const { status } = await axios.post(
         `${API_BASE_URL}api/v1/auth/logout`,
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
-
-      if (response.status === 200) {
+      if (status === 200) {
         setIsLoggedIn(false);
         localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("role"); // Clear login state
-        localStorage.removeItem("userId"); // Clear login state
+        localStorage.removeItem("role");
+        localStorage.removeItem("userId");
         setIsDropdownOpen(false);
         window.location.href = "/";
       }
@@ -176,26 +142,25 @@ function Navbar() {
     }
   };
 
+  /* JSX */
   return (
     <div className="overflow-x-hidden">
       <nav className="w-full bg-[#001F54]">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
           {/* Logo */}
-          <div className="flex items-center space-x-3 overflow-hidden">
-            <NavLink to="/">
-              <img
-                src={logo}
-                alt="Uni Shop Logo"
-                className="w-20 m-10 sm:m-0 md:m-0 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
-              />
-            </NavLink>
-          </div>
+          <NavLink to="/" className="flex items-center overflow-hidden">
+            <img
+              src={logo}
+              alt="Uni Shop logo"
+              className="w-20 m-10 sm:m-0 md:m-0 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
+            />
+          </NavLink>
 
-          {/* Search Bar - Hidden on small and tablet screens */}
+          {/* Desktop search */}
           {!isSmallScreen && (
             <div className="flex-grow flex justify-center mx-4">
               <div className="flex items-center bg-white rounded-md px-2 w-full max-w-[600px]">
-                <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
+                <img src={searchIcon} alt="Search" className="w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search"
@@ -205,62 +170,53 @@ function Navbar() {
             </div>
           )}
 
-          {/* Icons - Aligned to the right */}
+          {/* Right-side icons */}
           <div className="flex items-center space-x-3 ml-auto">
-            {isLoggedIn && isLibrary ? (
+            {isLoggedIn ? (
               <>
-                {/* Notification Icon */}
-                <button type="button">
-                  <IoIosNotificationsOutline className="w-8 h-8 sm:w-10 sm:h-10 cursor-pointer text-white" />
+                <button>
+                  <IoIosNotificationsOutline className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 </button>
-                {/* Settings Icon */}
-                <button type="button">
-                  <IoSettingsOutline className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer text-white" />
+                <button>
+                  <IoSettingsOutline className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </button>
               </>
             ) : (
               <>
-                {/* Favourite Icon */}
-                <button type="button">
+                <button>
                   <img
                     src={fav}
-                    alt="Favourite Icon"
-                    className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
+                    alt="Favourite"
+                    className="w-6 h-6 sm:w-8 sm:h-8"
                   />
                 </button>
-                {/* Cart Icon */}
-                <button type="button">
+                <button>
                   <img
                     src={cart}
-                    alt="Cart Icon"
-                    className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
+                    alt="Cart"
+                    className="w-6 h-6 sm:w-8 sm:h-8"
                   />
                 </button>
               </>
             )}
 
-            {/* User Icon and Dropdown */}
+            {/* Avatar + dropdown */}
             <div
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
               ref={dropdownRef}
               className="relative"
             >
-              <button type="button" onClick={toggleDropdown}>
-                <img
-                  src={hug}
-                  alt="User Icon"
-                  className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
-                />
+              <button onClick={toggleDropdown}>
+                <img src={hug} alt="User" className="w-6 h-6 sm:w-8 sm:h-8" />
               </button>
 
-              {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div
                   className={`fixed w-[299px] ${
                     isSmallScreen ? "top-[88px] right-4" : "right-0"
                   } bg-[#001F54] shadow-lg rounded-md z-50`}
-                  style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+                  style={{ boxShadow: "0 4px 4px 0 #00000040" }}
                 >
                   <div className="p-4">
                     {isLoggedIn ? (
@@ -271,11 +227,7 @@ function Navbar() {
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           <span className="text-white">Profile</span>
-                          <img
-                            src={profileIcon}
-                            alt="Profile Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={profileIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                         <NavLink
                           to="/"
@@ -283,11 +235,7 @@ function Navbar() {
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           <span className="text-white">Home</span>
-                          <img
-                            src={homeIcon}
-                            alt="Home Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={homeIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                         <NavLink
                           to="/privacy"
@@ -295,11 +243,7 @@ function Navbar() {
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           <span className="text-white">Privacy</span>
-                          <img
-                            src={privacyIcon}
-                            alt="Privacy Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={privacyIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                         <NavLink
                           to="/help"
@@ -307,11 +251,7 @@ function Navbar() {
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           <span className="text-white">Help</span>
-                          <img
-                            src={helpIcon}
-                            alt="Help Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={helpIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                         <NavLink
                           to="/MiniDrawer/home"
@@ -322,17 +262,18 @@ function Navbar() {
                           <MdDashboard className="w-6 h-6 text-white" />
                         </NavLink>
 
+                        {/* Language selector */}
                         <div className="flex items-center justify-between mb-4 relative">
                           <span className="text-white">Language</span>
                           <div className="flex items-center">
                             <img
                               src={languageIcon}
-                              alt="Language Icon"
+                              alt=""
                               className="w-6 h-6"
                             />
                             <button
                               onClick={toggleLanguageDropdown}
-                              className="ml-2 focus:outline-none text-white"
+                              className="ml-2 text-white"
                             >
                               ▼
                             </button>
@@ -354,16 +295,13 @@ function Navbar() {
                             </div>
                           )}
                         </div>
+
                         <button
-                          className="flex items-center justify-between mb-4 cursor-pointer w-full"
                           onClick={handleLogout}
+                          className="flex items-center justify-between mb-4 w-full"
                         >
                           <span className="text-white">Logout</span>
-                          <img
-                            src={logoutIcon}
-                            alt="Logout Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={logoutIcon} alt="" className="w-6 h-6" />
                         </button>
                       </>
                     ) : (
@@ -374,11 +312,7 @@ function Navbar() {
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           <span className="text-white">Login</span>
-                          <img
-                            src={profileIcon}
-                            alt="Login Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={profileIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                         <NavLink
                           to="/signup"
@@ -386,11 +320,7 @@ function Navbar() {
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           <span className="text-white">Signup</span>
-                          <img
-                            src={profileIcon}
-                            alt="Signup Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={profileIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                       </>
                     )}
@@ -401,11 +331,11 @@ function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Search Bar - Only visible on small and tablet screens */}
+        {/* Mobile search */}
         {isSmallScreen && (
           <div className="w-full px-4 pb-2">
             <div className="flex items-center bg-white rounded-md px-2">
-              <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
+              <img src={searchIcon} alt="Search" className="w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search"
@@ -418,30 +348,24 @@ function Navbar() {
         {/* Overlay */}
         {isMenuOpen && (
           <div
-            className="fixed top-0 left-0 w-full h-full bg-[#D9D9D980] bg-opacity-50 z-40"
-            onClick={closeMenu}
+            className="fixed top-0 left-0 w-full h-full bg-[#D9D9D980] z-40"
+            onClick={() => setIsMenuOpen(false)}
           />
         )}
 
         {/* Sidebar */}
         <div
           ref={sidebarRef}
-          className={`fixed top-0 left-0 w-64 h-screen bg-[#001F54] z-50 transform transition-transform duration-300 ease-in-out ${
+          className={`fixed top-0 left-0 w-64 h-screen bg-[#001F54] z-50 transform transition-transform duration-300 ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {/* Sidebar Content */}
-          <div className="p-4 " style={{ fontFamily: "Hedvig Letters Sans" }}>
-            {/* Hamburger Icon and Categories Text */}
+          <div className="p-4" style={{ fontFamily: "Hedvig Letters Sans" }}>
             <div className="flex items-center mb-6">
-              <button
-                type="button"
-                onClick={toggleMenu}
-                className="space-y-1 focus:outline-none cursor-pointer"
-              >
-                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+              <button onClick={toggleMenu} className="space-y-1">
+                <div className="w-[28px] h-[5px] bg-white rounded-md" />
+                <div className="w-[28px] h-[5px] bg-white rounded-md" />
+                <div className="w-[28px] h-[5px] bg-white rounded-md" />
               </button>
               <span
                 className="text-white ml-4"
@@ -450,14 +374,13 @@ function Navbar() {
                   fontWeight: 700,
                   fontSize: "32px",
                   lineHeight: "38.73px",
-                  letterSpacing: "0%",
                 }}
               >
                 Categories
               </span>
             </div>
 
-            {isSmallScreen && <></>}
+            {/* TODO: sidebar links */}
           </div>
         </div>
       </nav>

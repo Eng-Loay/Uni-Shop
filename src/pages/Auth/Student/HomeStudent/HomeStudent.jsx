@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function HomeStudent() {
-  const [products, setProducts] = useState([]);  // Store the list of products
-  const [currentPage, setCurrentPage] = useState(1);  // Current page of products
-  const [totalPages, setTotalPages] = useState(1);  // Total number of pages
-  const [loading, setLoading] = useState(false);  // Loading state for API request
-  const [error, setError] = useState(null);  // Error state for API request
+  const [products, setProducts] = useState([]); // Store the list of products
+  const [currentPage, setCurrentPage] = useState(1); // Current page of products
+  const [totalPages, setTotalPages] = useState(1); // Total number of pages
+  const [loading, setLoading] = useState(false); // Loading state for API request
+  const [error, setError] = useState(null); // Error state for API request
 
-  const userId = localStorage.getItem("userId");  // Get the logged-in user's ID
+  const userId = localStorage.getItem("userId"); // Get the logged-in user's ID
 
   // Fetch products from the API with pagination
   const fetchProducts = async () => {
@@ -18,8 +18,12 @@ function HomeStudent() {
     setError(null);
 
     try {
-      console.log("Calling API:", `${API_BASE_URL}api/v1/product/all/items?page=${currentPage}`);
-      const response = await axios.get(`${API_BASE_URL}api/v1/product/all/items?page=${currentPage}`,
+      console.log(
+        "Calling API:",
+        `${API_BASE_URL}api/v1/product/all/items?page=${currentPage}`
+      );
+      const response = await axios.get(
+        `${API_BASE_URL}api/v1/product/all/items?page=${currentPage}`,
         { withCredentials: true }
       );
 
@@ -67,7 +71,10 @@ function HomeStudent() {
       <div className="product-list grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.length > 0 ? (
           products.map((product) => (
-            <div key={product.id} className="product-card p-4 border rounded-md">
+            <div
+              key={product.id}
+              className="product-card p-4 border rounded-md"
+            >
               <img
                 src={product.image || "https://via.placeholder.com/150"}
                 alt={product.name}
@@ -91,7 +98,9 @@ function HomeStudent() {
         >
           Previous
         </button>
-        <span>Page {currentPage} of {totalPages}</span>
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
         <button
           onClick={handleNextPage}
           disabled={currentPage === totalPages}
