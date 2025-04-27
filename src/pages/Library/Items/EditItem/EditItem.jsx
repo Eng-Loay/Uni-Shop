@@ -149,6 +149,16 @@ const EditItem = () => {
                     disabled={!isEditing}
                     className="w-auto p-2 border rounded mb-4"
                   />
+
+                  <label className="block mb-2">Brand</label>
+                  <input
+                    type="text"
+                    name="brand"
+                    value={formData.brand}
+                    onChange={handleChange}
+                    disabled={!isEditing}
+                    className="w-auto p-2 border rounded mb-4"
+                  />
                 </div>
 
                 <button
