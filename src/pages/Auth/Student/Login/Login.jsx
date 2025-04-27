@@ -278,7 +278,7 @@ function Login() {
                       transition={{ delay: 0.7 }}
                       onClick={() => {
                         const role = localStorage.getItem("role");
-                        if (role === "student") navigate("/student");
+                        if (role === "student") navigate("/homestudent");
                         else if (role === "admin") navigate("/admin");
                         else navigate("/");
                       }}

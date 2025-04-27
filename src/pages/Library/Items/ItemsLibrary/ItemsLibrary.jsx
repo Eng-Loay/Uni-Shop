@@ -133,7 +133,7 @@ navigate(`/minidrawer/items/itemsdetails/${itemId}`)
                   >
                 <Menu size={20}/>
                   </button>
-                  {menuOpen === item._id && (
+                  {menuOpen === item._id && 
                     <div className="absolute right-0 mt-2 w-24 bg-white border border-gray-200 rounded-lg shadow-lg">
                       <button
                         onClick={() => handleEdit(item._id)}
@@ -149,7 +149,7 @@ navigate(`/minidrawer/items/itemsdetails/${itemId}`)
                       </button
                       >
                     </div>
-                  )}
+                  }
                 </div>
              <div className=" h-57 w-full">
                <img className="w-full h-full object-cover" src={item.product_pictures?.[0]?.secure_url}></img>
