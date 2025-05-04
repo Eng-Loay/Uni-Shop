@@ -18,8 +18,10 @@ import { ItemsProvider } from "./pages/Library/Items/ItemsContext/ItemsContext";
 import EditItem from "./pages/Library/Items/EditItem/EditItem";
 import Information from "./pages/Library/Information/Information";
 import OrderTable from "./pages/Library/Order/order";
-import ItemsDetails from "./pages/Library/ItemsDetails/ItemsDetails";
-import HomeStudent from "./pages/Auth/Student/HomeStudent/HomeStudent";
+import Stores from "./components/adminComponents/stores/Stores.jsx";
+import Requests from "./components/adminComponents/requests/Requests.jsx";
+import MiniDrawer2 from "./components/Drawer/adminDrawer/AdminDrawer.jsx";
+import AdminDashboard from "./components/adminComponents/adminDashboard/AdminDashboard.jsx";
 
 let x = createBrowserRouter([
   {
@@ -33,7 +35,6 @@ let x = createBrowserRouter([
       { path: "forgetpasswordlibrary", element: <ForgotPasswordLibrary /> },
       { path: "signup", element: <Signup /> },
       { path: "login", element: <Login /> },
-      {path:"homestudent",element:<HomeStudent/>},
       { path: "forgetpassword", element: <ForgotPassword /> },
       { path: "MiniDrawer", element: <MiniDrawer /> },
       { path: "HomeDrawer", element: <HomeDrawer /> },
@@ -41,7 +42,6 @@ let x = createBrowserRouter([
       { path: "items", element: <ItemsLibrary /> },
       // children: [{path:"/addItem",element:<AddItem/>}]},
       { path: "MiniDrawer/add-items", element: <AddItem /> },
-      
     ],
   },
   {
@@ -53,18 +53,32 @@ let x = createBrowserRouter([
         children: [
           { index: true, element: <Home /> },
           { path: "home", element: <HomePage /> },
-       
           { path: "items", element: <ItemsLibrary /> },
           { path: "items/additems", element: <AddItem /> },
           { path: "items/edititems/:id", element: <EditItem /> },
-          { path: "items/itemsdetails/:id", element: <ItemsDetails /> },
           // Add other nested routes as needed
           {
             path: "orders",
             element: <OrderTable />,
-          }, 
+          },
           { path: "information", element: <Information /> },
           { path: "logout", element: <div>Logout Page</div> },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/adminedrawer",
+    element: <Layout />,
+    children: [
+      {
+        element: <MiniDrawer2 />,
+        children: [
+          { index: true, element: <div>Welcome to MiniDrawer2</div> }, // optional default
+          { path: "adminDashboard", element: <AdminDashboard /> },
+          { path: "stores", element: <Stores /> },
+          { path: "request", element: <Requests /> },
+          // other nested routes can go here
         ],
       },
     ],

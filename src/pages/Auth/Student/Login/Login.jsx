@@ -22,7 +22,7 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
-  const [userRole, setUserRole] = useState(""); // ✅ ADDED
+  const [userRole, setUserRole] = useState(""); // ✅ ADDED``
 
   const navigate = useNavigate();
 
@@ -66,7 +66,7 @@ function Login() {
             navigate("/login"); // ✅ forward, not back
             break;
           case "admin":
-            navigate("/admin");
+            // navigate("/admin");
             break;
           default:
             navigate("/");
@@ -279,7 +279,7 @@ function Login() {
                       onClick={() => {
                         const role = localStorage.getItem("role");
                         if (role === "student") navigate("/homestudent");
-                        else if (role === "admin") navigate("/admin");
+                        else if (role === "admin") navigate("/adminedrawer");
                         else navigate("/");
                       }}
                     >
