@@ -22,6 +22,7 @@ import Stores from "./components/adminComponents/stores/Stores.jsx";
 import Requests from "./components/adminComponents/requests/Requests.jsx";
 import MiniDrawer2 from "./components/Drawer/adminDrawer/AdminDrawer.jsx";
 import AdminDashboard from "./components/adminComponents/adminDashboard/AdminDashboard.jsx";
+import Chatbot from "./pages/ChatBot/chatbot.jsx";
 
 let x = createBrowserRouter([
   {
@@ -35,6 +36,7 @@ let x = createBrowserRouter([
       { path: "forgetpasswordlibrary", element: <ForgotPasswordLibrary /> },
       { path: "signup", element: <Signup /> },
       { path: "login", element: <Login /> },
+      { path: "/chat", element: <Chatbot /> },
       { path: "forgetpassword", element: <ForgotPassword /> },
       { path: "MiniDrawer", element: <MiniDrawer /> },
       { path: "HomeDrawer", element: <HomeDrawer /> },
