@@ -24,7 +24,7 @@ export default function HomePage() {
 
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/api/v1/library/library_dashboard`, {
+      .get(`${import.meta.env.VITE_API_URL}api/v1/library/library_dashboard`, {
         withCredentials: true,
       })
       .then((res) => setDashboard(res.data.library_dashboard_data))
