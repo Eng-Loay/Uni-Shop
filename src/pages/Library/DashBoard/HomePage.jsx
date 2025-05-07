@@ -73,11 +73,19 @@ export default function HomePage() {
       value: ondelivered_Orders_Percentage,
       color: "#001F54",
     },
-    { name: "Delivered", value: delivered_Orders_Percentage, color: "#1964e6" },
-    { name: "Cancelled", value: cancelled_orders_Percentage, color: "#4f7ac4" },
+    {
+      name: "Delivered",
+      value: delivered_Orders_Percentage,
+      color: "#1964e6",
+    },
+    {
+      name: "Cancelled",
+      value: cancelled_orders_Percentage,
+      color: "#4f7ac4",
+    },
   ];
 
-  // Force the total to 100 so percentages stay as sent
+  // Pie total stays at 100 because we render each slice + grey remainder
   const totalPie = 100;
 
   const timeData = [
@@ -85,6 +93,7 @@ export default function HomePage() {
     { name: "Afternoon", value: afternoon_Orders_Percentage, color: "#4f7ac4" },
     { name: "Evening", value: evening_Orders_Percentage, color: "#1964e6" },
   ];
+  // compute the actual sum of your three percentages
   const totalTime = timeData.reduce((sum, e) => sum + e.value, 0);
 
   const barData = thisWeekOrders.map((val, idx) => ({
@@ -143,7 +152,6 @@ export default function HomePage() {
                     <Cell fill={entry.color} />
                     <Cell fill="#f0f0f0" />
                   </Pie>
-                  {/* always render the percentage in the center */}
                   <text
                     x="50%"
                     y="50%"
@@ -155,7 +163,6 @@ export default function HomePage() {
                   >
                     {pct}%
                   </text>
-                  {/* label below the donut */}
                   <text
                     x="50%"
                     y="210"
@@ -182,8 +189,7 @@ export default function HomePage() {
                   style={{ backgroundColor: e.color }}
                 />
                 <span>
-                  {e.name} (
-                  {totalTime ? ((e.value / totalTime) * 100).toFixed(0) : 0}%)
+                  {e.name} ({e.value}%)
                 </span>
               </div>
             ))}
@@ -209,6 +215,7 @@ export default function HomePage() {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute">
+              {/* now shows 48+5+43 = 96% */}
               <p className="text-xl font-bold">{totalTime}%</p>
             </div>
           </div>
@@ -225,7 +232,6 @@ export default function HomePage() {
               <YAxis />
               <Tooltip />
               <Legend />
-              {/* custom fills to match your mockup */}
               <Bar dataKey="thisWeek" name="This Week" fill="#1964e6" />
               <Bar dataKey="lastWeek" name="Last Week" fill="#001F54" />
             </BarChart>
