@@ -1,6 +1,10 @@
+// src/components/Header/Navbar.jsx
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { socket } from "../../socket";
+import { toast } from "react-toastify";
+
 import { MdDashboard } from "react-icons/md";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
@@ -21,37 +25,108 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-function Navbar() {
-  /* Role & auth helpers */
+export default function Navbar() {
+  // Role & auth
   const userRole = localStorage.getItem("role"); // 'library' | 'user' | 'admin'
-  const isLibrary = userRole === "library";
+  const userId = localStorage.getItem("userId");
+  const navigate = useNavigate();
 
-  /* Component state */
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // Notifications
+  const [notifications, setNotifications] = useState([]);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  // Close notifications dropdown on outside click
+  useEffect(() => {
+    function handleOutside(e) {
+      if (
+        notifDropdownOpen &&
+        notifRef.current &&
+        !notifRef.current.contains(e.target)
+      ) {
+        setNotifDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [notifDropdownOpen]);
+
+  // Admin socket
+  useEffect(() => {
+    if (userRole !== "admin" || !userId) return;
+    socket.emit("register", userId);
+    socket.on("library-request", (library) => {
+      const libraryName = library.name || library.username || "New Library";
+      const id = library._id || Date.now();
+      setNotifications((prev) => [{ id, name: libraryName }, ...prev]);
+      toast.info(
+        
+        <div className="bg-[#001F54] rounded-lg shadow-lg overflow-hidden w-80">
+          {/* Title in a light blue */}
+          <div className="flex items-center px-4 py-3 space-x-2">
+            <IoIosNotificationsOutline className="text-xl text-blue-300" />
+            <span className="font-medium text-blue-300">
+              New library registered:{" "}
+              <strong className="text-white">{libraryName}</strong>
+            </span>
+          </div>
+
+          {/* 4 s progress bar (white on navy) */}
+          <div className="h-1 bg-white/30">
+            <div className="h-full bg-white animate-toast-progress" />
+          </div>
+
+          {/* View Requests button */}
+          <div className="px-4 py-3 border-t border-white/20 text-right">
+            <button
+              onClick={() => navigate("/adminedrawer/request")}
+              className="
+            inline-block px-5 py-2
+            bg-white text-[#001F54]
+            font-semibold
+            rounded-full
+            shadow-md
+            hover:bg-gray-100
+            transition
+          "
+            >
+              View Requests
+            </button>
+          </div>
+        </div>,
+        {
+          autoClose: 4000, // 4 second lifespan
+          hideProgressBar: true, // we draw our own bar
+          closeOnClick: false,
+          pauseOnHover: false,
+          draggable: false,
+          icon: false, // remove Toastify’s default white icon
+
+          // make the outer wrapper fully transparent
+          className: "bg-transparent p-0 shadow-none",
+          bodyClassName: "bg-transparent p-0",
+        }
+      );
+      
+    });
+    return () => socket.off("library-request");
+  }, [userRole, userId, navigate]);
+
+  // Login status
   const [isLoggedIn, setIsLoggedIn] = useState(
     localStorage.getItem("isLoggedIn") === "true"
   );
-  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
-
-  const sidebarRef = useRef(null);
-  const dropdownRef = useRef(null);
-
-  /* 1 ▪ Check login status on mount */
   useEffect(() => {
-    const checkLoginStatus = async () => {
+    async function checkLoginStatus() {
       const endpoint =
         userRole === "library"
           ? "auth/library/library-data"
-          : "auth/student/user-data"; // users & admins share this
-
+          : "auth/student/user-data";
       try {
         const { status } = await axios.get(
           `${API_BASE_URL}api/v1/${endpoint}`,
           { withCredentials: true }
         );
-
         if (status === 200) {
           setIsLoggedIn(true);
           localStorage.setItem("isLoggedIn", "true");
@@ -59,69 +134,67 @@ function Navbar() {
           setIsLoggedIn(false);
           localStorage.removeItem("isLoggedIn");
         }
-      } catch (err) {
-        console.error(
-          "Error checking login status:",
-          err?.response?.data ?? err
-        );
+      } catch {
         setIsLoggedIn(false);
         localStorage.removeItem("isLoggedIn");
       }
-    };
-
+    }
     checkLoginStatus();
-  }, []); // run once
+  }, [userRole]);
 
-  /* 2 ▪ Track viewport size */
+  // Screen size
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
   useEffect(() => {
-    const handleResize = () => setIsSmallScreen(window.innerWidth <= 1024);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const onResize = () => setIsSmallScreen(window.innerWidth <= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  /* 3 ▪ Freeze scroll while sidebar open */
+  // Sidebar scroll lock
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "auto";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
+    return () => (document.body.style.overflow = "auto");
   }, [isMenuOpen]);
 
-  /* 4 ▪ Close sidebar / dropdown when clicking outside */
+  // Avatar dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const sidebarRef = useRef(null);
+  const dropdownRef = useRef(null);
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(e.target))
+    function handleClickOutside(e) {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
         setIsMenuOpen(false);
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
-    };
+      }
+    }
     if (isMenuOpen || isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen, isDropdownOpen]);
 
-  /* 5 ▪ Close dropdown on scroll */
   useEffect(() => {
-    const handleScroll = () => isDropdownOpen && setIsDropdownOpen(false);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => isDropdownOpen && setIsDropdownOpen(false);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, [isDropdownOpen]);
 
-  /* UI handlers */
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const toggleDropdown = () =>
-    isSmallScreen && setIsDropdownOpen(!isDropdownOpen);
-  const handleMouseEnter = () => !isSmallScreen && setIsDropdownOpen(true);
-  const handleMouseLeave = () => !isSmallScreen && setIsDropdownOpen(false);
-  const toggleLanguageDropdown = () =>
-    setLanguageDropdownOpen(!languageDropdownOpen);
+  // UI handlers
+  const toggleMenu = () => setIsMenuOpen((o) => !o);
+  const handleDropdownToggle = () => setIsDropdownOpen((o) => !o);
 
+  // Language selector
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const toggleLanguageDropdown = () => setLanguageDropdownOpen((o) => !o);
   const handleLanguageSelect = (lang) => {
     console.log(`Selected language: ${lang}`);
     setLanguageDropdownOpen(false);
   };
 
+  // Logout
   const handleLogout = async () => {
     try {
       const { status } = await axios.post(
@@ -131,28 +204,24 @@ function Navbar() {
       );
       if (status === 200) {
         setIsLoggedIn(false);
-        localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("role");
-        localStorage.removeItem("userId");
-        setIsDropdownOpen(false);
+        localStorage.clear();
         window.location.href = "/";
       }
-    } catch (error) {
-      console.error("Error logging out:", error);
+    } catch (err) {
+      console.error("Error logging out:", err);
     }
   };
 
-  /* JSX */
   return (
     <div className="overflow-x-hidden">
-      <nav className="w-full bg-[#001F54]">
-        <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
+      <nav className="w-full bg-[#001F54] overflow-visible relative z-20">
+        <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8">
           {/* Logo */}
           <NavLink to="/" className="flex items-center overflow-hidden">
             <img
               src={logo}
               alt="Uni Shop logo"
-              className="w-20 m-10 sm:m-0 md:m-0 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
+              className="w-20 m-10 sm:m-0 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
             />
           </NavLink>
 
@@ -170,18 +239,71 @@ function Navbar() {
             </div>
           )}
 
-          {/* Right-side icons */}
-          <div className="flex items-center space-x-3 ml-auto">
-            {isLoggedIn ? (
-              <>
-                <button>
+          {/* Notifications, Settings, Avatar */}
+          <div className="flex items-center space-x-3 ml-auto overflow-visible">
+            {/* ─── Admin‐only notifications ─── */}
+            {isLoggedIn && userRole === "admin" && (
+              <div ref={notifRef} className="relative">
+                <button
+                  onClick={() => setNotifDropdownOpen((o) => !o)}
+                  className="cursor-pointer relative"
+                >
                   <IoIosNotificationsOutline className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  {notifications.length > 0 && (
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
+                  )}
                 </button>
-                <button>
-                  <IoSettingsOutline className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                </button>
-              </>
-            ) : (
+                {notifDropdownOpen && (
+                  <div
+                    className="
+          fixed right-8 top-[88px] w-64
+          bg-[#001F54] text-white
+          shadow-lg rounded z-50
+          max-h-80 overflow-y-auto
+        "
+                  >
+                    {notifications.length > 0 ? (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className="px-4 py-2 hover:bg-white/10 cursor-pointer"
+                        >
+                          {n.name}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-2 text-white/50">
+                        No notifications
+                      </div>
+                    )}
+                    <div className="border-t border-white/20 p-4">
+                      <button
+                        onClick={() => navigate("/adminedrawer/request")}
+                        className="
+                w-full px-6 py-2
+                bg-white text-[#001F54]
+                font-bold rounded-full
+                shadow-lg hover:bg-gray-100
+                transition-all duration-200
+              "
+                      >
+                        View All Requests
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ─── Settings (all logged-in users) ─── */}
+            {isLoggedIn && (
+              <button className="cursor-pointer">
+                <IoSettingsOutline className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              </button>
+            )}
+
+            {/* ─── Guest favourites & cart ─── */}
+            {!isLoggedIn && (
               <>
                 <button>
                   <img
@@ -200,22 +322,22 @@ function Navbar() {
               </>
             )}
 
-            {/* Avatar + dropdown */}
-            <div
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              ref={dropdownRef}
-              className="relative"
-            >
-              <button onClick={toggleDropdown}>
+            {/* ─── Avatar (always visible) ─── */}
+            <div ref={dropdownRef} className="relative">
+              <button
+                onClick={() => setIsDropdownOpen((o) => !o)}
+                className="cursor-pointer"
+              >
                 <img src={hug} alt="User" className="w-6 h-6 sm:w-8 sm:h-8" />
               </button>
 
               {isDropdownOpen && (
                 <div
-                  className={`fixed w-[299px] ${
-                    isSmallScreen ? "top-[88px] right-4" : "right-0"
-                  } bg-[#001F54] shadow-lg rounded-md z-50`}
+                  className={`
+          fixed w-[299px]
+          ${isSmallScreen ? "top-[88px] right-4" : "right-0"}
+          bg-[#001F54] shadow-lg rounded-md z-50
+        `}
                   style={{ boxShadow: "0 4px 4px 0 #00000040" }}
                 >
                   <div className="p-4">
@@ -387,5 +509,3 @@ function Navbar() {
     </div>
   );
 }
-
-export default Navbar;
