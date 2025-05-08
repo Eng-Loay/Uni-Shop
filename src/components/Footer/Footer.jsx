@@ -1,13 +1,26 @@
+// src/components/Footer.jsx
 import FaceBook from "../../assets/Fotter/Facebook.svg";
 import Instagram from "../../assets/Fotter/Instgram.svg";
 import Tiktok from "../../assets/Fotter/TikTok.svg";
 import Phone from "../../assets/Fotter/Phone.svg";
 import Email from "../../assets/Fotter/Email.svg";
+import MessageIcon from "../../assets/Fotter/message.svg"; // <-- your message icon
 import { NavLink } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#001F54] text-white py-8 px-4 w-full flex flex-col justify-center bottom-0">
+    <footer className="relative bg-[#001F54] text-white py-8 px-4 w-full flex flex-col justify-center bottom-0">
+      {/* ► Floating message icon */}
+      <div className="absolute -top-20 right-6 bg-[#165BEF] rounded-full p-2 ">
+        <NavLink to="/chat">
+          <img
+            src={MessageIcon}
+            alt="Chat with us"
+            className="w-8 h-8 hover:opacity-80 transition-opacity"
+          />
+        </NavLink>
+      </div>
+
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* UNI SHOP Section */}
         <div className="flex flex-col lg:ms-20">
@@ -16,7 +29,6 @@ const Footer = () => {
             Various versions have evolved over the years, sometimes by accident,
             sometimes on purpose (injected humour and the like).
           </p>
-          {/* Join as Library Link under UNI SHOP */}
           <div className="mt-6">
             <NavLink
               to="/signuplibrary"
@@ -47,7 +59,6 @@ const Footer = () => {
             <img src={Email} alt="Email" className="mr-2 w-4 h-5" />
             unishoop453@gmail.com
           </p>
-          {/* Social Icons under contact details */}
           <div className="flex space-x-4 mt-4">
             <a href="#" className="hover:text-gray-300">
               <img src={Tiktok} alt="Tiktok" width="35" height="35" />
@@ -62,7 +73,6 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Copyright Section */}
       <div className="text-center text-xs text-gray-400 mt-6">
         &copy; 2024-2025 by UNI SHOP. All rights reserved.
       </div>

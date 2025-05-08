@@ -1,10 +1,8 @@
-import {
-  Globe,
-  Users2,
-  ChartNoAxesColumn,
-  PanelsTopLeft,
-  User,
-} from "lucide-react";
+// src/pages/HomePage.jsx
+
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Globe, Users2, ChartNoAxesColumn, PanelsTopLeft } from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -14,227 +12,244 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  Legend,
+  ResponsiveContainer,
   LineChart,
   Line,
-  ResponsiveContainer,
-  Legend,
 } from "recharts";
 
-function HomePage() {
+export default function HomePage() {
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}api/v1/library/library_dashboard`, {
+        withCredentials: true,
+      })
+      .then((res) => setDashboard(res.data.library_dashboard_data))
+      .catch((err) => console.error("Failed to load dashboard:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (!dashboard)
+    return <div className="p-4 text-red-500">Error loading data.</div>;
+
+  const {
+    total_orders,
+    total_customers,
+    total_Revenue,
+    total_library_products,
+    cancelled_orders_Percentage,
+    ondelivered_Orders_Percentage,
+    delivered_Orders_Percentage,
+    morning_Orders_Percentage,
+    afternoon_Orders_Percentage,
+    evening_Orders_Percentage,
+    thisWeekOrders,
+    lastWeekOrders,
+    monthlyRevenue,
+  } = dashboard;
+
   const summaryCards = [
-    { label: "Total Orders", value: 450, icon: <Globe /> },
-    { label: "Total Customers", value: 955, icon: <Users2 /> },
-    { label: "Total Revenue", value: "$50K", icon: <ChartNoAxesColumn /> },
-    { label: "Total Menu", value: 250, icon: <PanelsTopLeft /> },
-    { label: "Total Workers", value: 30, icon: <User /> },
+    { label: "Total Orders", value: total_orders, icon: <Globe /> },
+    { label: "Total Customers", value: total_customers, icon: <Users2 /> },
+    {
+      label: "Total Revenue",
+      value: `$${total_Revenue}`,
+      icon: <ChartNoAxesColumn />,
+    },
+    {
+      label: "Total Products",
+      value: total_library_products,
+      icon: <PanelsTopLeft />,
+    },
   ];
+
   const pieData = [
-    { name: "On Delivery", value: 20, color: "#001F54" },
-    { name: "Delivered", value: 75, color: "#001F54" },
-    { name: "Cancelled", value: 5, color: "#001F54" },
+    {
+      name: "On Delivery",
+      value: ondelivered_Orders_Percentage,
+      color: "#001F54",
+    },
+    {
+      name: "Delivered",
+      value: delivered_Orders_Percentage,
+      color: "#1964e6",
+    },
+    {
+      name: "Cancelled",
+      value: cancelled_orders_Percentage,
+      color: "#4f7ac4",
+    },
   ];
-  const totalValue = pieData.reduce((acc, cur) => acc + cur.value, 0);
+
+  // Pie total stays at 100 because we render each slice + grey remainder
+  const totalPie = 100;
+
   const timeData = [
-    { name: "Morning", value: 20, color: "#001F54" },
-    { name: "Afternoon", value: 40, color: "#4f7ac4" },
-    { name: "Evening", value: 30, color: "#1964e6" },
+    { name: "Morning", value: morning_Orders_Percentage, color: "#001F54" },
+    { name: "Afternoon", value: afternoon_Orders_Percentage, color: "#4f7ac4" },
+    { name: "Evening", value: evening_Orders_Percentage, color: "#1964e6" },
   ];
+  // compute the actual sum of your three percentages
+  const totalTime = timeData.reduce((sum, e) => sum + e.value, 0);
 
-  const barData = [
-    { day: "Sun", thisWeek: 600, lastWeek: 400 },
-    { day: "Mon", thisWeek: 800, lastWeek: 600 },
-    { day: "Tue", thisWeek: 750, lastWeek: 500 },
-    { day: "Wed", thisWeek: 650, lastWeek: 700 },
-    { day: "Thu", thisWeek: 700, lastWeek: 600 },
-    { day: "Fri", thisWeek: 900, lastWeek: 850 },
-    { day: "Sat", thisWeek: 100, lastWeek: 750 },
-  ];
+  const barData = thisWeekOrders.map((val, idx) => ({
+    day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][idx],
+    thisWeek: val,
+    lastWeek: lastWeekOrders[idx] || 0,
+  }));
 
-  const lineData = [
-    { month: "Jan", revenue: 400 },
-    { month: "Feb", revenue: 600 },
-    { month: "Mar", revenue: 500 },
-    { month: "Apr", revenue: 350 },
-    { month: "May", revenue: 450 },
-    { month: "Jun", revenue: 700 },
-  ];
+  const lineData = monthlyRevenue.map((rev, idx) => ({
+    month: new Date(0, idx).toLocaleString("en-US", { month: "short" }),
+    revenue: rev,
+  }));
 
   return (
-    <>
-      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
-        <div className="flex flex-wrap items-center justify-center text-gray-900  p-2 gap-4">
-          {summaryCards.map(({ label, value, icon }, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl shadow p-4 flex items-center gap-3 w-full sm:w-auto"
-            >
-              <span className="text-[#001F54] text-3xl">{icon}</span>
-              <div>
-                <p className="text-sm text-gray-500">{label}</p>
-                <p className="text-xl font-bold">{value}</p>
-              </div>
+    <div className="container mx-auto max-w-6xl px-4 py-4">
+      {/* Summary cards */}
+      <div className="flex flex-wrap justify-center gap-4">
+        {summaryCards.map(({ label, value, icon }, i) => (
+          <div
+            key={i}
+            className="bg-white rounded-xl shadow p-4 flex items-center gap-3 w-full sm:w-auto"
+          >
+            <span className="text-[#001F54] text-3xl">{icon}</span>
+            <div>
+              <p className="text-sm text-gray-500">{label}</p>
+              <p className="text-xl font-bold">{value}</p>
             </div>
-          ))}
-        </div>
-        <div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <div className="bg-white rounded-xl shadow p-6 lg:col-span-2">
-              <div className="flex justify-between">
-                <h3 className="text-lg font-semibold mb-2">Order Summary</h3>
-                <h3>Today</h3>
-              </div>
-              <div className="flex justify-around">
-                {pieData.map((entry, index) => {
-                  const percentage = ((entry.value / totalValue) * 100).toFixed(
-                    0
-                  );
-                  const remainingValue = totalValue - entry.value;
-                  return (
-                    <PieChart key={index} width={200} height={220}>
-                      {" "}
-                      {/* Increased height for space to display name */}
-                      {/* Uncolored part */}
-                      <Pie
-                        data={[{ name: "Remaining", value: remainingValue }]}
-                        cx="50%"
-                        cy="50%"
-                        startAngle={90}
-                        endAngle={90 + (remainingValue / totalValue) * 360}
-                        innerRadius={60}
-                        outerRadius={80}
-                        dataKey="value"
-                        labelLine={false}
-                      >
-                        <Cell fill="#f0f0f0" />{" "}
-                        {/* Different color for uncolored part */}
-                      </Pie>
-                      {/* Colored part */}
-                      <Pie
-                        data={[{ name: entry.name, value: entry.value }]}
-                        cx="50%"
-                        cy="50%"
-                        startAngle={90}
-                        endAngle={90 + (entry.value / totalValue) * 360}
-                        innerRadius={60}
-                        outerRadius={80}
-                        dataKey="value"
-                        label={({ cx, cy }) => (
-                          <text
-                            x={cx}
-                            y={cy}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            fill="#000"
-                          >
-                            {percentage}%
-                          </text>
-                        )}
-                        labelLine={false}
-                      >
-                        <Cell fill={entry.color} />
-                      </Pie>
-                      {/* Name below the pie */}
-                      <text
-                        x="50%"
-                        y="210"
-                        textAnchor="middle"
-                        fill="#000"
-                        fontSize="12"
-                      >
-                        {entry.name}
-                      </text>
-                    </PieChart>
-                  );
-                })}
-              </div>
-            </div>
+          </div>
+        ))}
+      </div>
 
-            <div className="bg-white rounded-xl shadow p-6 relative">
-              <h3 className="text-lg font-semibold mb-2 text-left">
-                Over View
-              </h3>
-              <div className="absolute top-6 right-6 space-y-1 text-sm">
-                {timeData.map((entry, index) => {
-                  const total = timeData.reduce(
-                    (acc, cur) => acc + cur.value,
-                    0
-                  );
-                  const percent = ((entry.value / total) * 100).toFixed(0);
-                  return (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: entry.color }}
-                      />
-                      <span>
-                        {entry.name} ({percent}%)
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="relative flex justify-center items-center mt-8">
-                <PieChart width={220} height={220}>
+      {/* Order summary pies */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="bg-white rounded-xl shadow p-6 lg:col-span-2">
+          <div className="flex justify-between mb-2">
+            <h3 className="text-lg font-semibold">Order Summary</h3>
+            <span>Today</span>
+          </div>
+          <div className="flex justify-around">
+            {pieData.map((entry, idx) => {
+              const rem = totalPie - entry.value;
+              const pct = entry.value.toFixed(0);
+              return (
+                <PieChart key={idx} width={200} height={220}>
                   <Pie
-                    data={timeData}
+                    data={[{ value: entry.value }, { value: rem }]}
+                    dataKey="value"
                     cx="50%"
                     cy="50%"
+                    startAngle={90}
+                    endAngle={-270}
                     innerRadius={60}
                     outerRadius={80}
-                    fill="#8884d8"
                     paddingAngle={2}
-                    dataKey="value"
                   >
-                    {timeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                    <Cell fill={entry.color} />
+                    <Cell fill="#f0f0f0" />
                   </Pie>
-                  <Tooltip />
+                  <text
+                    x="50%"
+                    y="50%"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize="18"
+                    fontWeight="bold"
+                    fill="#000"
+                  >
+                    {pct}%
+                  </text>
+                  <text
+                    x="50%"
+                    y="210"
+                    textAnchor="middle"
+                    fontSize="12"
+                    fill="#000"
+                  >
+                    {entry.name}
+                  </text>
                 </PieChart>
-                <div className="absolute">
-                  <p className="text-xl font-bold text-center">
-                    {timeData.reduce((acc, cur) => acc + cur.value, 0)}%
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <div className="bg-white rounded-xl shadow p-4">
-            <h3 className="text-lg font-semibold mb-2">Customer Map</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={barData}>
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="thisWeek" fill="#001F54" name="This Week" />
-                <Bar dataKey="lastWeek" fill="#4f7ac4" name="Last Week" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
 
-          <div className="bg-white rounded-xl shadow p-4">
-            <h3 className="text-lg font-semibold mb-2">Total Revenue</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={lineData}>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#1964e6"
-                  strokeWidth={2}
+        {/* Time-of-day overview */}
+        <div className="bg-white rounded-xl shadow p-6 relative">
+          <h3 className="text-lg font-semibold mb-2">Over View</h3>
+          <div className="absolute top-6 right-6 text-sm space-y-1">
+            {timeData.map((e, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: e.color }}
                 />
-              </LineChart>
+                <span>
+                  {e.name} ({e.value}%)
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center items-center mt-8">
+            <ResponsiveContainer width={220} height={220}>
+              <PieChart>
+                <Pie
+                  data={timeData}
+                  dataKey="value"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={2}
+                  label={false}
+                >
+                  {timeData.map((_, i) => (
+                    <Cell key={i} fill={timeData[i].color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
             </ResponsiveContainer>
+            <div className="absolute">
+              {/* now shows 48+5+43 = 96% */}
+              <p className="text-xl font-bold">{totalTime}%</p>
+            </div>
           </div>
         </div>
       </div>
-    </>
+
+      {/* Bar & Line charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-white rounded-xl shadow p-4">
+          <h3 className="text-lg font-semibold mb-2">Customer Map</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={barData}>
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="thisWeek" name="This Week" fill="#1964e6" />
+              <Bar dataKey="lastWeek" name="Last Week" fill="#001F54" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-4">
+          <h3 className="text-lg font-semibold mb-2">Total Revenue</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={lineData}>
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="revenue" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
   );
 }
-
-export default HomePage;
