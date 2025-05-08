@@ -12,7 +12,8 @@ function ItemsDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate(); 
-  
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const productImages = item?.product_pictures?.map(pic => pic?.secure_url) || [];
 
     const handleEdit = (itemId) => {
         navigate(`/minidrawer/items/edititems/${itemId}`); 
@@ -45,25 +46,48 @@ function ItemsDetails() {
 
 
 
-    <div className="container mx-auto max-w-7xl px-4 py-10">
-      <div className="flex flex-col lg:flex-row gap-12">
+    <div className="container mx-auto max-w-7xl px-4 py-18">
+      <div className="flex flex-col lg:flex-row gap-8 items-stretch">
         {/* Left side - Image + thumbnails */}
-        <div className="w-full lg:w-1/2">
-          <div className="relative py-20">
-            <img
-              src={item.product_pictures?.[0]?.secure_url}
-              alt={item.name}
-              className="rounded-lg shadow-lg w-100 h-100 object-cover"
+        <div className="w-full lg:w-1/2 flex flex-col">
+          <div className="relative bg-gray-100 rounded-lg overflow-hidden flex-grow flex items-center justify-center p-8">
+          <img
+              src={productImages[selectedImageIndex]}
+              alt={`${item.name} - Main view`}
+              className="max-h-[400px] w-auto object-contain"
+              style={{ maxWidth: '80%' }}
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/600x600?text=Image+Not+Available';
+              }}
             />
-          
-          </div>
+           </div>
+            {/* Thumbnail gallery */}
+          {productImages.length > 1 && (
+            <div className="grid grid-cols-4 gap-3 mt-4">
+              {productImages.map((img, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`aspect-square rounded-md overflow-hidden border-2 ${
+                    selectedImageIndex === index ? 'border-blue-500' : 'border-transparent'
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`${item.name} thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
 
       
         </div>
 
         {/* Right side - Product Info */}
-        <div className="w-full lg:w-1/2 space-y-6 py-20">
-          <div>
+        <div className="w-full lg:w-1/2 bg-white p-6 rounded-lg shadow-sm flex flex-col">
+        <div className="flex-grow">
             <h1 className="text-3xl font-bold text-gray-900">{item.name}</h1>
             {/* Reviews */}
             <div className="flex items-center mt-2 text-yellow-400">

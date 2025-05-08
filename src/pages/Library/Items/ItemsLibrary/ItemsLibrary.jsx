@@ -195,44 +195,6 @@ navigate(`/minidrawer/items/itemsdetails/${itemId}`)
                </button>
              </div>
            </div>
-        
-/* <div key={item._id} className="relative w-full max-w-sm m-2 mt-20 bg-white border border-gray-200 rounded-3xl shadow-sm dark:bg-gray-800 dark:border-gray-700 sm:w-full md:1/2 lg:w-1/3">
-
-<div className="absolute top-3 right-3">
-                  <button
-                    onClick={() => setMenuOpen(menuOpen === item._id ? null : item._id)}
-                    className="text-gray-500 hover:text-gray-700 "
-                  >
-                <Menu size={20}/>
-                  </button>
-                  {menuOpen === item._id && (
-                    <div className="absolute right-0 mt-2 w-24 bg-white border border-gray-200 rounded-lg shadow-lg">
-                      <button
-                        onClick={() => handleEdit(item._id)}
-                        className="block w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        className="block w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-  <div className="flex flex-col items-center p-2 bg-white rounded-3xl shadow-lg hover:shadow-xl transition-shadow duration-300 ">
-    <img className="w-50 h-50 object-cover mb-4 rounded-3xl shadow-md self-center" src={item.product_pictures?.[0]?.secure_url} alt="image" />
-    <h5 className="text-lg font-semibold text-gray-900 dark:text-white ">{item.name}</h5>
-    <span className="mt-2 p-x-3 py-1 text-sm font-medium rounded">{item.price} EGP</span>
-    <span className={`mt-2 inline-block px-3 py-1 text-sm font-medium rounded-lg ${
-            item.in_stock ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-          }`}>
-            {item.in_stock ? "In Stock" : "Out of Stock"}
-          </span>
-  </div>
-</div>  */
  ))}
         </div>
         <div className="flex justify-center mt-6 space-x-2">

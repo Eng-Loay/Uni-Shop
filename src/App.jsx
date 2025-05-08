@@ -19,7 +19,12 @@ import EditItem from "./pages/Library/Items/EditItem/EditItem";
 import Information from "./pages/Library/Information/Information";
 import OrderTable from "./pages/Library/Order/order";
 import ItemsDetails from "./pages/Library/ItemsDetails/ItemsDetails";
-import HomeStudent from "./pages/Auth/Student/HomeStudent/HomeStudent";
+import ProductsHome from "./pages/Student/ProductsHome/ProductsHome"
+import Cart from "./pages/Student/Cart/Cart";
+import { CartProvider } from "./pages/Student/CartContext/CartContext";
+import { WishlistProvider } from "./pages/Student/WishListContext/WishListContext";
+import Wishlist from "./pages/Student/WishList/WishList";
+import ProductDetails from "./pages/Student/ProductDetails/ProductDetails";
 
 let x = createBrowserRouter([
   {
@@ -33,7 +38,10 @@ let x = createBrowserRouter([
       { path: "forgetpasswordlibrary", element: <ForgotPasswordLibrary /> },
       { path: "signup", element: <Signup /> },
       { path: "login", element: <Login /> },
-      {path:"homestudent",element:<HomeStudent/>},
+      {path:"productshome",element:<ProductsHome/>},
+      {path:"cart",element:<Cart/>},
+      {path:"wishlist",element:<Wishlist/>},
+      {path:"productdetails/:id",element:<ProductDetails/>},
       { path: "forgetpassword", element: <ForgotPassword /> },
       { path: "MiniDrawer", element: <MiniDrawer /> },
       { path: "HomeDrawer", element: <HomeDrawer /> },
@@ -73,9 +81,15 @@ let x = createBrowserRouter([
 
 function App() {
   return (
+  
     <ItemsProvider>
+        <CartProvider>
+        <WishlistProvider>
       <RouterProvider router={x} />
+      </WishlistProvider>
+      </CartProvider>
     </ItemsProvider>
+    
   );
 }
 

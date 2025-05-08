@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { MdDashboard } from "react-icons/md";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
@@ -18,6 +18,8 @@ import languageIcon from "../../assets/Header/language.svg";
 import logoutIcon from "../../assets/Header/logout.svg";
 
 import axios from "axios";
+import { useCart } from "../../pages/Student/CartContext/CartContext";
+import { useWishlist } from "../../pages/Student/WishListContext/WishListContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -25,6 +27,8 @@ function Navbar() {
   /* Role & auth helpers */
   const userRole = localStorage.getItem("role"); // 'library' | 'user' | 'admin'
   const isLibrary = userRole === "library";
+  const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
 
   /* Component state */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,7 +38,7 @@ function Navbar() {
     localStorage.getItem("isLoggedIn") === "true"
   );
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
-
+  const navigate = useNavigate();
   const sidebarRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -172,7 +176,7 @@ function Navbar() {
 
           {/* Right-side icons */}
           <div className="flex items-center space-x-3 ml-auto">
-            {isLoggedIn ? (
+            {isLoggedIn &&userRole!="student"? (
               <>
                 <button>
                   <IoIosNotificationsOutline className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
@@ -183,20 +187,34 @@ function Navbar() {
               </>
             ) : (
               <>
-                <button>
+              <div className="relative">
+                <button onClick={() => navigate('/wishlist')}>
                   <img
                     src={fav}
                     alt="Favourite"
                     className="w-6 h-6 sm:w-8 sm:h-8"
                   />
                 </button>
-                <button>
+                {wishlistCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {wishlistCount}
+          </span>
+        )}
+                </div>
+                <div className="relative">
+                <button onClick={() => navigate('/cart')}>
                   <img
                     src={cart}
                     alt="Cart"
                     className="w-6 h-6 sm:w-8 sm:h-8"
                   />
                 </button>
+                {cartCount > 0 && (
+        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+          {cartCount}
+        </span>
+      )}
+                </div>
               </>
             )}
 
