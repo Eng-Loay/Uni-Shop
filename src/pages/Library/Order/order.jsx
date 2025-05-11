@@ -62,6 +62,7 @@ export default function OrderTable() {
               page: currentPage,
               limit: 5,
             },
+            withCredentials: true,
           }
         );
 

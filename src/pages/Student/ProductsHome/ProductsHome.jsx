@@ -1,62 +1,80 @@
-import  { useState, useEffect } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom"; // ← NEW
 import axios from "axios";
 import Loader from "../../../components/Loader/Loader";
-import { Star } from 'lucide-react';
 import ProductCard from "../ProductCard/ProductCard";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-function HomeStudent() {
-  const [products, setProducts] = useState([]); // Store the list of products
-  const [currentPage, setCurrentPage] = useState(1); // Current page of products
-  const [totalPages, setTotalPages] = useState(1); // Total number of pages
-  const [loading, setLoading] = useState(true); // Loading state for API request
-  const [error, setError] = useState(null); // Error state for API request
+export default function HomeStudent() {
+  // -------------------- state --------------------
+  const [products, setProducts] = useState([]);
+  const [currentPage, setCurrent] = useState(1);
+  const [totalPages, setTotal] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const userId = localStorage.getItem("userId"); // Get the logged-in user's ID
-  
-  const [count, setCount] = useState(1);
-
-
-
-  // Fetch products from the API with pagination
+  // -------------------- fetch (unchanged) --------------------
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const productsResponse = await axios.get(
-          `${API_BASE_URL}api/v1/product//all/items?page=${currentPage}`
-        );
-        setProducts(productsResponse.data.data);
-        setTotalPages(productsResponse.data.totalPages || 1);
-
-
+    setLoading(true);
+    axios
+      // 👇 remove the accidental double-slash in your path
+      .get(`${API_BASE_URL}api/v1/product/all/items?page=${currentPage}`)
+      .then(({ data }) => {
+        setProducts(data.data || []); // adapt if your key differs
+        setTotal(data.totalPages || 1);
         setLoading(false);
-      } catch (err) {
+
+        /* Save names once for navbar autocomplete */
+        const names = (data.data || []).map((p) => p.name);
+        localStorage.setItem("productNames", JSON.stringify(names));
+      })
+      .catch((err) => {
         setError(err);
         setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [currentPage]); 
+      });
+  }, [currentPage]);
 
-  if (loading) return <Loader/>;
-  if (error) return <div>Error: {error.message}</div>;
-  return (
-  <>
-  <div className="text-lg p-5">
-      <span className="px-1 rounded font-extrabold">Products you may like</span>
-    </div>
+  // -------------------- read ?search=JJ --------------------
+  const { search } = useLocation(); // e.g. "?search=jj"
+  const query =
+    new URLSearchParams(search).get("search")?.trim().toLowerCase() || "";
 
-    <div className="container mx-auto max-w-7xl">
-      <div className="flex flex-wrap">
-        {products.map((product) => (
-          <ProductCard key={product._id} product={product} />
-        ))}
+  /* filter on the fly – memoised for perf */
+  const visible = useMemo(() => {
+    if (!query) return products;
+    return products.filter((p) => p.name?.toLowerCase().includes(query));
+  }, [products, query]);
+
+  // -------------------- UI --------------------
+  if (loading) return <Loader />;
+  if (error)
+    return (
+      <div className="text-center py-10 text-red-600">
+        Error: {error.message}
       </div>
-    </div>
-  </>
+    );
+
+  return (
+    <>
+      <div className="text-lg p-5 font-extrabold">Products you may like</div>
+
+      <div className="container mx-auto max-w-7xl">
+        {visible.length === 0 ? (
+          <div className="text-center py-20 text-gray-500">
+            No products match “{query}”
+          </div>
+        ) : (
+          <div className="flex flex-wrap">
+            {visible.map((p) => (
+              <ProductCard key={p._id} product={p} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* TODO: pagination controls that call setCurrent(n) */}
+    </>
   );
 }
-
-export default HomeStudent;

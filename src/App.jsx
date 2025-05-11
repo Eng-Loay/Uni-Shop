@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import "./App.css";
 import Home from "./pages/Home/Home";
 
@@ -19,7 +20,7 @@ import EditItem from "./pages/Library/Items/EditItem/EditItem";
 import Information from "./pages/Library/Information/Information";
 import OrderTable from "./pages/Library/Order/order";
 import ItemsDetails from "./pages/Library/ItemsDetails/ItemsDetails";
-import ProductsHome from "./pages/Student/ProductsHome/ProductsHome"
+import ProductsHome from "./pages/Student/ProductsHome/ProductsHome";
 import Cart from "./pages/Student/Cart/Cart";
 import { CartProvider } from "./pages/Student/CartContext/CartContext";
 import { WishlistProvider } from "./pages/Student/WishListContext/WishListContext";
@@ -30,6 +31,8 @@ import Requests from "./components/adminComponents/requests/Requests.jsx";
 import MiniDrawer2 from "./components/Drawer/adminDrawer/AdminDrawer.jsx";
 import AdminDashboard from "./components/adminComponents/adminDashboard/AdminDashboard.jsx";
 import Chatbot from "./pages/ChatBot/chatbot.jsx";
+import Shipping from "./pages/Student/Shipping/shipping.jsx";
+import OrderSuccess from "./pages/Student/OrderSuccess/ordersuccess.jsx";
 
 let x = createBrowserRouter([
   {
@@ -43,11 +46,13 @@ let x = createBrowserRouter([
       { path: "forgetpasswordlibrary", element: <ForgotPasswordLibrary /> },
       { path: "signup", element: <Signup /> },
       { path: "login", element: <Login /> },
-      {path:"productshome",element:<ProductsHome/>},
-      {path:"cart",element:<Cart/>},
+      { path: "productshome", element: <ProductsHome /> },
+      { path: "cart", element: <Cart /> },
+      { path: "shipping", element: <Shipping /> },
+      { path: "order-success", element: <OrderSuccess /> },
       { path: "/chat", element: <Chatbot /> },
-      {path:"wishlist",element:<Wishlist/>},
-      {path:"productdetails/:id",element:<ProductDetails/>},
+      { path: "wishlist", element: <Wishlist /> },
+      { path: "productdetails/:id", element: <ProductDetails /> },
       { path: "forgetpassword", element: <ForgotPassword /> },
       { path: "MiniDrawer", element: <MiniDrawer /> },
       { path: "HomeDrawer", element: <HomeDrawer /> },
@@ -100,15 +105,13 @@ let x = createBrowserRouter([
 
 function App() {
   return (
-  
     <ItemsProvider>
-        <CartProvider>
+      <CartProvider>
         <WishlistProvider>
-      <RouterProvider router={x} />
-      </WishlistProvider>
+          <RouterProvider router={x} />
+        </WishlistProvider>
       </CartProvider>
     </ItemsProvider>
-    
   );
 }
 
