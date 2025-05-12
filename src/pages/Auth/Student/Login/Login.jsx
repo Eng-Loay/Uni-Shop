@@ -60,17 +60,17 @@ function Login() {
         setShowSuccess(true);
 
         /* ─── role-based redirect ─── */
-        switch (role) {
-          case "student":
-            console.log("Student role detected");
-            navigate("/login"); // ✅ forward, not back
-            break;
-          case "admin":
-            // navigate("/admin");
-            break;
-          default:
-            navigate("/");
-        }
+        // switch (role) {
+        //   case "student":
+        //     console.log("Student role detected");
+        //     navigate("/login"); // ✅ forward, not back
+        //     break;
+        //   case "admin":
+        //     // navigate("/admin");
+        //     break;
+        //   default:
+        //     navigate("/");
+        // }
       }
     } catch (err) {
       const msg =

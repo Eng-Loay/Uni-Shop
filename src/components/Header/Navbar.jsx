@@ -47,22 +47,22 @@ export default function Navbar() {
   const suggestBoxRef = useRef(null);
 
   /* load names once */
-  useEffect(() => {
-    // debounce – wait 300 ms after the last key-stroke
-    const id = setTimeout(() => {
-      const t = term.trim();
-      const base = isLibrary ? "/minidrawer/items" : "/productshome";
+  // useEffect(() => {
+  //   // debounce – wait 300 ms after the last key-stroke
+  //   const id = setTimeout(() => {
+  //     const t = term.trim();
+  //     const base = isLibrary ? "/minidrawer/items" : "/productshome";
 
-      if (t) {
-        // replace:true so we don’t clutter browser history
-        navigate(`${base}?search=${encodeURIComponent(t)}`, { replace: true });
-      } else {
-        navigate(base, { replace: true });
-      }
-    }, 300);
+  //     if (t) {
+  //       // replace:true so we don’t clutter browser history
+  //       navigate(`${base}?search=${encodeURIComponent(t)}`, { replace: true });
+  //     } else {
+  //       navigate(base, { replace: true });
+  //     }
+  //   }, 300);
 
-    return () => clearTimeout(id); // clear on next key-stroke
-  }, [term, isLibrary, navigate]);
+  //   return () => clearTimeout(id); // clear on next key-stroke
+  // }, [term, isLibrary, navigate]);
 
   const refreshSuggestions = (value) => {
     const v = value.toLowerCase().trim();
