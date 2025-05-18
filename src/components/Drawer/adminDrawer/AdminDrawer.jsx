@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FaHome, FaSignOutAlt, FaStore } from "react-icons/fa";
 import { FaCodePullRequest } from "react-icons/fa6";
 import { Outlet, NavLink } from "react-router-dom";
+import { style } from "@mui/system";
 
 // LogoutPage component
 const LogoutPage = () => {
@@ -24,9 +25,10 @@ const LogoutPage = () => {
 const NAVIGATION = [
   {
     title: "Main items",
+    
     items: [
       {
-        title: "Home",
+        title: "Home" ,
         icon: <FaHome size={20} />,
         path: "/adminedrawer/adminDashboard",
       },
@@ -156,7 +158,7 @@ function MiniDrawer2() {
                             isOpen ? "px-3" : "justify-center"
                           } py-2 text-sm rounded-md transition-colors ${
                             isActive
-                              ? "bg-blue-800 text-white"
+                              ? "bg-blue-700 text-white"
                               : "text-gray-300 hover:bg-blue-700 hover:text-white"
                           }`
                         }
@@ -164,6 +166,7 @@ function MiniDrawer2() {
                         <span className="flex-shrink-0">{item.icon}</span>
                         {isOpen && <span className="ml-3">{item.title}</span>}
                       </NavLink>
+                      
                     )}
 
                     {isOpen && item.children && isReportsExpanded && (

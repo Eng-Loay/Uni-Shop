@@ -279,7 +279,8 @@ function Login() {
                       onClick={() => {
                         const role = localStorage.getItem("role");
                         if (role === "student") navigate("/productshome");
-                        else if (role === "admin") navigate("/adminedrawer");
+                        else if (role === "admin")
+                          navigate("/adminedrawer/adminDashboard");
                         else navigate("/");
                       }}
                     >
