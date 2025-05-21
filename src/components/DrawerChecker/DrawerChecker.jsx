@@ -5,7 +5,10 @@ const DrawerChecker = () => {
   const { pathname } = useLocation();
   console.log("Current Path:", pathname);
   // Only render HomeDrawer for the root path
-  if (pathname === "/") return <HomeDrawer />;
+  if (pathname === "/") {
+    console.log("Rendering HomeDrawer for root path");
+    return <HomeDrawer />;
+  }
 
   return null; // No drawer for other routes
 };

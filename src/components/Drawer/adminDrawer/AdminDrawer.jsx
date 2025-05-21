@@ -1,34 +1,35 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaHome, FaSignOutAlt, FaStore } from "react-icons/fa";
 import { FaCodePullRequest } from "react-icons/fa6";
 import { Outlet, NavLink } from "react-router-dom";
-import { style } from "@mui/system";
-
+// import { style } from "@mui/system";
+import Swal from "sweetalert2";
 // LogoutPage component
-const LogoutPage = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
-        <div className="text-center">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-4">Logout</h1>
-          <p className="text-gray-600">
-            You have been logged out successfully.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+// const LogoutPage = () => {
+//   return (
+//     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+//       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
+//         <div className="text-center">
+//           <h1 className="text-3xl font-extrabold text-gray-900 mb-4">Logout</h1>
+//           <p className="text-gray-600">
+//             You have been logged out successfully.
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
 const NAVIGATION = [
   {
     title: "Main items",
-    
+
     items: [
       {
-        title: "Home" ,
+        title: "Home",
         icon: <FaHome size={20} />,
         path: "/adminedrawer/adminDashboard",
       },
@@ -63,26 +64,45 @@ function MiniDrawer2() {
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   const handleLogout = async () => {
+    /* 1️⃣ Ask the user */
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to log out?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+      reverseButtons: true,
+    });
+
+    /* 2️⃣ If they hit “No” just return */
+    if (!result.isConfirmed) return;
+
+    /* 3️⃣ Proceed with the real logout */
     try {
       const response = await axios.post(
         `${API_BASE_URL}api/v1/auth/logout`,
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
 
       if (response.status === 200) {
         localStorage.removeItem("isLoggedIn");
         localStorage.removeItem("userId");
         localStorage.removeItem("role");
+
+        /* optional success toast */
+        await Swal.fire("Logged out", "See you soon!", "success");
+
         setIsLoggedOut(true);
-        setTimeout(() => {
-          navigate("/");
-        }, 3000);
+        setTimeout(() => navigate("/"), 1000);
       }
     } catch (error) {
-      console.error("Error logging out:", error);
+      Swal.fire(
+        "Error!",
+        error.response?.data?.message || "Logout failed",
+        "error"
+      );
     }
   };
 
@@ -91,10 +111,6 @@ function MiniDrawer2() {
       setActiveItem(path);
     }
   };
-
-  if (isLoggedOut) {
-    return <LogoutPage />;
-  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -166,7 +182,6 @@ function MiniDrawer2() {
                         <span className="flex-shrink-0">{item.icon}</span>
                         {isOpen && <span className="ml-3">{item.title}</span>}
                       </NavLink>
-                      
                     )}
 
                     {isOpen && item.children && isReportsExpanded && (

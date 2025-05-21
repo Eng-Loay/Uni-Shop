@@ -5,10 +5,11 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { socket } from "../../socket";
 import { toast } from "react-toastify";
 import axios from "axios";
-
+import Swal from "sweetalert2";
+import "sweetalert2/src/sweetalert2.scss";
 import { MdDashboard } from "react-icons/md";
 import { IoIosNotificationsOutline } from "react-icons/io";
-import { IoSettingsOutline } from "react-icons/io5";
+// import { IoSettingsOutline } from "react-icons/io5";
 
 import searchIcon from "../../assets/Header/search-icon.svg";
 import fav from "../../assets/Header/favoritte.svg";
@@ -261,6 +262,40 @@ export default function Navbar() {
     socket.on("order-notification", listener);
     return () => socket.off("order-notification", listener);
   }, [isLibrary, userId, navigate]);
+  useEffect(() => {
+    // Run ONLY for logged-in students
+    if (!isStudent || !userId) return;
+
+    // Make sure the user is registered
+    socket.emit("register", userId);
+    console.log("🎈 Registering socket for birthday check:", userId);
+
+    // Listener for birthday event (expects a simple message string)
+    const listener = (message) => {
+      console.log("🎁 Birthday message received:", message);
+      Swal.fire({
+        title: `🎉 Happy Birthday!`,
+        html: `
+        <div class="flex flex-col items-center">
+          <img src="https://cdn-icons-png.flaticon.com/512/3159/3159066.png" style="width:190px;margin-bottom:12px;border-radius:8px" />
+          <p class="text-[#001F54]">${message}</p>
+          </div>
+        `,
+        width: 360,
+        background: "#fff",
+        confirmButtonColor: "#001F54",
+        confirmButtonText: "Thanks!",
+        showCloseButton: true,
+        padding: "1.5rem",
+      });
+    };
+
+    socket.on("birthday", listener);
+
+    return () => {
+      socket.off("birthday", listener); // cleanup
+    };
+  }, [isStudent, userId]);
 
   /* ─── Login state (unchanged) ───────────────────────────────────── */
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -336,7 +371,7 @@ export default function Navbar() {
   /* ─── Render ───────────────────────────────────────────────────── */
   return (
     <div className="overflow-x-hidden">
-      <nav className="w-full bg-[#001F54] overflow-visible relative z-[100]">
+      <nav className="w-full bg-[#001F54] overflow-visible relative ">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8">
           {/* Logo */}
           <NavLink to="/" className="flex items-center overflow-hidden">
@@ -474,11 +509,11 @@ export default function Navbar() {
             )}
 
             {/* Settings (non-student) */}
-            {isLoggedIn && !isStudent && (
+            {/* {isLoggedIn && !isStudent && (
               <button className="cursor-pointer">
                 <IoSettingsOutline className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </button>
-            )}
+            )} */}
 
             {/* Wishlist & Cart for students / guests */}
             {(!isLoggedIn || isStudent) && (
@@ -515,6 +550,7 @@ export default function Navbar() {
             )}
 
             {/* Avatar */}
+            {/* Avatar (click-to-open dropdown) */}
             <div ref={avatarRef} className="relative">
               <button
                 onClick={() => setAvatarOpen((o) => !o)}
@@ -523,22 +559,29 @@ export default function Navbar() {
                 <img src={hug} alt="User" className="w-6 h-6 sm:w-8 sm:h-8" />
               </button>
 
+              {/* ---------------- DROPDOWN ---------------- */}
               {avatarOpen && (
                 <div
-                  className={`fixed w-[299px] ${isSmall ? "top-[88px] right-4" : "right-4"} bg-[#001F54] shadow-lg rounded-md z-[120]`}
+                  className={`fixed w-[299px] ${isSmall ? "top-[88px] right-4" : "right-4"}
+                  bg-[#001F54] shadow-lg rounded-md z-[120]`}
                   style={{ boxShadow: "0 4px 4px 0 #00000040" }}
                 >
                   <div className="p-4">
                     {isLoggedIn ? (
                       <>
-                        <NavLink
-                          to="/minidrawer/information"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setAvatarOpen(false)}
-                        >
-                          <span className="text-white">Profile</span>
-                          <img src={profileIcon} alt="" className="w-6 h-6" />
-                        </NavLink>
+                        {/* ───── link visible ONLY for libraries ───── */}
+                        {isLibrary && (
+                          <NavLink
+                            to="/minidrawer/information"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Profile</span>
+                            <img src={profileIcon} alt="" className="w-6 h-6" />
+                          </NavLink>
+                        )}
+
+                        {/* Home (all roles) */}
                         <NavLink
                           to="/"
                           className="flex items-center justify-between mb-4"
@@ -547,7 +590,9 @@ export default function Navbar() {
                           <span className="text-white">Home</span>
                           <img src={homeIcon} alt="" className="w-6 h-6" />
                         </NavLink>
-                        <NavLink
+
+                        {/* Privacy & Help (all roles) */}
+                        {/* <NavLink
                           to="/privacy"
                           className="flex items-center justify-between mb-4"
                           onClick={() => setAvatarOpen(false)}
@@ -562,51 +607,46 @@ export default function Navbar() {
                         >
                           <span className="text-white">Help</span>
                           <img src={helpIcon} alt="" className="w-6 h-6" />
-                        </NavLink>
-                        <NavLink
-                          to="/MiniDrawer/home"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setAvatarOpen(false)}
-                        >
-                          <span className="text-white">Dashboard</span>
-                          <MdDashboard className="w-6 h-6 text-white" />
-                        </NavLink>
+                        </NavLink> */}
 
-                        {/* Language */}
-                        <div className="flex items-center justify-between mb-4 relative">
-                          <span className="text-white">Language</span>
-                          <div className="flex items-center">
-                            <img
-                              src={languageIcon}
-                              alt=""
-                              className="w-6 h-6"
-                            />
-                            <button
-                              onClick={() => setLangOpen((o) => !o)}
-                              className="ml-2 text-white"
-                            >
-                              ▼
-                            </button>
-                          </div>
+                        {/* ───── dashboard / products variations ───── */}
+                        {userRole === "admin" && (
+                          <NavLink
+                            to="/adminedrawer/adminDashboard"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Dashboard</span>
+                            <MdDashboard className="w-6 h-6 text-white" />
+                          </NavLink>
+                        )}
 
-                          {langOpen && (
-                            <div className="absolute top-8 right-0 bg-[#001F54] shadow-lg rounded-md p-2 z-[130]">
-                              {["Arabic", "English"].map((l) => (
-                                <button
-                                  key={l}
-                                  onClick={() => {
-                                    console.log(`Selected ${l}`);
-                                    setLangOpen(false);
-                                  }}
-                                  className="text-white hover:bg-[#003366] p-2 w-full text-left"
-                                >
-                                  {l}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                        {isLibrary && (
+                          <NavLink
+                            to="/MiniDrawer/home"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Dashboard</span>
+                            <MdDashboard className="w-6 h-6 text-white" />
+                          </NavLink>
+                        )}
 
+                        {isStudent && (
+                          <NavLink
+                            to="/productshome"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Products</span>
+                            <MdDashboard className="w-6 h-6 text-white" />
+                          </NavLink>
+                        )}
+
+                        {/* Language picker (unchanged) … */}
+                        {/* … */}
+
+                        {/* Logout */}
                         <button
                           onClick={handleLogout}
                           className="flex items-center justify-between mb-4 w-full"
@@ -616,6 +656,7 @@ export default function Navbar() {
                         </button>
                       </>
                     ) : (
+                      /* not logged-in: Login / Signup (unchanged) */
                       <>
                         <NavLink
                           to="/login"

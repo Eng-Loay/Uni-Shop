@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useMemo } from "react";
-import { useLocation } from "react-router-dom"; // ← NEW
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import Loader from "../../../components/Loader/Loader";
 import ProductCard from "../ProductCard/ProductCard";
@@ -8,25 +8,24 @@ import ProductCard from "../ProductCard/ProductCard";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function HomeStudent() {
-  // -------------------- state --------------------
+  // ---------- state ----------
   const [products, setProducts] = useState([]);
-  const [currentPage, setCurrent] = useState(1);
-  const [totalPages, setTotal] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // -------------------- fetch (unchanged) --------------------
+  // ---------- data fetch ----------
   useEffect(() => {
     setLoading(true);
     axios
-      // 👇 remove the accidental double-slash in your path
       .get(`${API_BASE_URL}api/v1/product/all/items?page=${currentPage}`)
       .then(({ data }) => {
-        setProducts(data.data || []); // adapt if your key differs
-        setTotal(data.totalPages || 1);
+        setProducts(data.data || []);
+        setTotalPages(data.totalPages || 1);
         setLoading(false);
 
-        /* Save names once for navbar autocomplete */
+        // store names for navbar search-autocomplete
         const names = (data.data || []).map((p) => p.name);
         localStorage.setItem("productNames", JSON.stringify(names));
       })
@@ -36,18 +35,21 @@ export default function HomeStudent() {
       });
   }, [currentPage]);
 
-  // -------------------- read ?search=JJ --------------------
-  const { search } = useLocation(); // e.g. "?search=jj"
+  // ---------- query filter ----------
+  const { search } = useLocation();
   const query =
     new URLSearchParams(search).get("search")?.trim().toLowerCase() || "";
 
-  /* filter on the fly – memoised for perf */
   const visible = useMemo(() => {
     if (!query) return products;
     return products.filter((p) => p.name?.toLowerCase().includes(query));
   }, [products, query]);
 
-  // -------------------- UI --------------------
+  // ---------- pager helpers ----------
+  const goPrev = () => setCurrentPage((p) => (p > 1 ? p - 1 : p)); // stay at 1
+  const goNext = () => setCurrentPage((p) => (p < totalPages ? p + 1 : p)); // stay at last
+
+  // ---------- UI ----------
   if (loading) return <Loader />;
   if (error)
     return (
@@ -72,9 +74,43 @@ export default function HomeStudent() {
             ))}
           </div>
         )}
-      </div>
 
-      {/* TODO: pagination controls that call setCurrent(n) */}
+        {/* ---------- pager ---------- */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-6 my-10 select-none">
+            <button
+              onClick={goPrev}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition 
+                ${
+                  currentPage === 1
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 cursor-pointer"
+                }`}
+            >
+              Previous
+            </button>
+
+            <span className="text-sm text-gray-600">
+              Page&nbsp;
+              <strong>{currentPage}</strong>&nbsp;/&nbsp;{totalPages}
+            </span>
+
+            <button
+              onClick={goNext}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition
+                ${
+                  currentPage === totalPages
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 cursor-pointer"
+                }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
     </>
   );
 }

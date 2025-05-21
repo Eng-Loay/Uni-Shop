@@ -135,7 +135,7 @@ export default function HomePage() {
           <div className="flex justify-around">
             {pieData.map((entry, idx) => {
               const rem = totalPie - entry.value;
-              const pct = entry.value.toFixed(0);
+              const pct = (entry.value ?? 0).toFixed(0);
               return (
                 <PieChart key={idx} width={200} height={220}>
                   <Pie

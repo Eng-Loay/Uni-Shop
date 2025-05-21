@@ -12,7 +12,6 @@ export default function Layout() {
   return (
     <div className="flex mx-auto text-gray-950">
       <DrawerChecker />
-
       <div className="flex flex-col flex-1">
         <Navbar />
         <Outlet />
