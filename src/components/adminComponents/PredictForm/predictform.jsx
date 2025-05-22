@@ -68,7 +68,7 @@ const initialForm = {
 };
 
 const PredictForm = () => {
-  const API_BASE = import.meta.env.VITE_CHAT_API_URL; // ← http://127.0.0.1:5000/
+  const API_BASE = import.meta.env.VITE_Predict_API_URL; // ← http://127.0.0.1:5000/
   const [form, setForm] = useState(initialForm);
   const [result, setRes] = useState(null); // show response in UI
   const [busy, setBusy] = useState(false); // disable button while sending
