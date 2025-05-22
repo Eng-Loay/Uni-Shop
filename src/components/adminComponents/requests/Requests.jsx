@@ -3,9 +3,9 @@ import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import Swal from "sweetalert2";
 import axios from "axios";
-
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 const api = axios.create({
-  baseURL: "http://localhost:3000/api/v1/admin",
+  baseURL: `${API_BASE_URL}api/v1/admin`,
   withCredentials: true,
 });
 

@@ -10,12 +10,13 @@ function Coupon({ refresh }) {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/v1/admin/all/copouns",
+          `${API_BASE_URL}api/v1/admin/all/copouns`,
           { withCredentials: true }
         );
         setCoupons(response.data.coupons || response.data);
@@ -38,7 +39,7 @@ function Coupon({ refresh }) {
   const handleEditCoupon = async (editedData, couponId) => {
     try {
       await axios.patch(
-        `http://localhost:3000/api/v1/admin/update_copoun/${couponId}`,
+        `${API_BASE_URL}api/v1/admin/update_copoun/${couponId}`,
         {
           code: editedData.code,
           discount: Number(editedData.discount),
@@ -90,7 +91,7 @@ function Coupon({ refresh }) {
 
       if (result.isConfirmed) {
         await axios.delete(
-          `http://localhost:3000/api/v1/admin/remove_copoun/${couponId}`,
+          `${API_BASE_URL}api/v1/admin/remove_copoun/${couponId}`,
           { withCredentials: true }
         );
         setCoupons(coupons.filter((coupon) => coupon._id !== couponId));

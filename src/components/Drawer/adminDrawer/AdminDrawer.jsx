@@ -2,7 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaHome, FaSignOutAlt, FaStore } from "react-icons/fa";
+import { FaHome, FaSignOutAlt, FaStore, FaChartBar } from "react-icons/fa";
 import { FaCodePullRequest } from "react-icons/fa6";
 import { Outlet, NavLink } from "react-router-dom";
 // import { style } from "@mui/system";
@@ -44,7 +44,11 @@ const NAVIGATION = [
         icon: <FaStore size={20} />,
         path: "/adminedrawer/stores",
       },
-
+      {
+        title: "Predict",
+        icon: <FaChartBar size={20} />,
+        path: "/adminedrawer/predict",
+      },
       {
         title: "Logout",
         icon: <FaSignOutAlt size={20} />,

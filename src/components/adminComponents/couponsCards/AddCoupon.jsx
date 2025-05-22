@@ -27,6 +27,7 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
   });
   const [isChecking, setIsChecking] = useState(false);
   const [existingCoupons, setExistingCoupons] = useState([]);
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   // Get tomorrow's date in YYYY-MM-DD format
   const getTomorrow = () => {
@@ -41,7 +42,7 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
       const fetchCoupons = async () => {
         try {
           const response = await axios.get(
-            "http://localhost:3000/api/v1/admin/all/copouns",
+            `${API_BASE_URL}api/v1/admin/all/copouns`,
             { withCredentials: true }
           );
           setExistingCoupons(response.data);

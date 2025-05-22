@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 function AdminDashboard() {
   const [isAddCouponOpen, setIsAddCouponOpen] = useState(false);
   const [refreshCoupons, setRefreshCoupons] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   const handleAddCoupon = async (formData) => {
     try {
@@ -19,11 +20,9 @@ function AdminDashboard() {
       };
 
       // Make the API call
-      await axios.post(
-        "http://localhost:3000/api/v1/admin/add_copoun",
-        couponData,
-        { withCredentials: true }
-      );
+      await axios.post(`${API_BASE_URL}api/v1/admin/add_copoun`, couponData, {
+        withCredentials: true,
+      });
 
       Swal.fire({
         title: "Success!",

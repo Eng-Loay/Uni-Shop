@@ -33,6 +33,7 @@ import AdminDashboard from "./components/adminComponents/adminDashboard/AdminDas
 import Chatbot from "./pages/ChatBot/chatbot.jsx";
 import Shipping from "./pages/Student/Shipping/shipping.jsx";
 import OrderSuccess from "./pages/Student/OrderSuccess/ordersuccess.jsx";
+import PredictForm from "./components/adminComponents/PredictForm/predictform.jsx";
 
 let x = createBrowserRouter([
   {
@@ -96,7 +97,9 @@ let x = createBrowserRouter([
           { path: "adminDashboard", element: <AdminDashboard /> },
           { path: "stores", element: <Stores /> },
           { path: "request", element: <Requests /> },
+          { path: "predict", element: <PredictForm /> },
           // other nested routes can go here
+          
         ],
       },
     ],
