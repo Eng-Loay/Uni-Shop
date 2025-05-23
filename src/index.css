@@ -22,3 +22,7 @@
 button {
   cursor: pointer;
 }
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}

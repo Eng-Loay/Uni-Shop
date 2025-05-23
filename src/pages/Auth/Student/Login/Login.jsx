@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   Mail,
@@ -13,6 +13,7 @@ import {
   GraduationCap,
   AlertCircle,
 } from "lucide-react";
+import { useAuth } from "../../../../context/AuthContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 function Login() {
@@ -22,9 +23,11 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
-  const [userRole, setUserRole] = useState(""); // ✅ ADDED``
+  const [userRole, setUserRole] = useState("");
 
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   /* ─────────── handlers ─────────── */
   const handleInputChange = (e) => {
@@ -53,24 +56,17 @@ function Login() {
         const role = (data.data?.role || "").toLowerCase();
         const id = data.data?.id;
 
-        if (id) localStorage.setItem("userId", id);
-        if (role) localStorage.setItem("role", role);
+        // Use the auth context to handle login
+        login({
+          id,
+          role,
+          ...data.data,
+        });
 
-        setUserRole(role); // ✅ now legal
+        setUserRole(role);
         setShowSuccess(true);
 
-        /* ─── role-based redirect ─── */
-        // switch (role) {
-        //   case "student":
-        //     console.log("Student role detected");
-        //     navigate("/login"); // ✅ forward, not back
-        //     break;
-        //   case "admin":
-        //     // navigate("/admin");
-        //     break;
-        //   default:
-        //     navigate("/");
-        // }
+        // No automatic redirect - user must click the "Continue to Dashboard" button
       }
     } catch (err) {
       const msg =
@@ -269,7 +265,7 @@ function Login() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
                     >
-                      Successfully signed in as {formData.role}
+                      Successfully signed in as {formData.email}
                     </motion.p>
                     <motion.button
                       className="px-8 py-3 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
@@ -277,11 +273,25 @@ function Login() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                       onClick={() => {
-                        const role = localStorage.getItem("role");
-                        if (role === "student") navigate("/productshome");
-                        else if (role === "admin")
-                          navigate("/adminedrawer/adminDashboard");
-                        else navigate("/");
+                        // If there's a specific path the user was trying to access, go there
+                        if (location.state?.from?.pathname) {
+                          navigate(location.state.from.pathname, {
+                            replace: true,
+                          });
+                        } else {
+                          // Otherwise, route based on user role - only handling student and admin
+                          const role = localStorage.getItem("role");
+                          if (role === "student") {
+                            navigate("/productshome", { replace: true });
+                          } else if (role === "admin") {
+                            navigate("/adminedrawer/adminDashboard", {
+                              replace: true,
+                            });
+                          } else {
+                            // Default fallback for any other role
+                            // navigate("/", { replace: true });
+                          }
+                        }
                       }}
                     >
                       Continue to Dashboard

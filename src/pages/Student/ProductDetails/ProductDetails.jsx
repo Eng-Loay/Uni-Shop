@@ -75,10 +75,19 @@ export default function ProductDetails() {
   }, [product]);
 
   /* ───── cart ───── */
-  const handleAddToCart = () => {
-    addToCart(product, count);
-    setShowPopup(true);
-    setTimeout(() => setShowPopup(false), 3000);
+  const handleAddToCart = async () => {
+    try {
+      await axios.post(
+        `${API_BASE_URL}api/v1/cart/add_item/${product._id}`,
+        { quantity: count },
+        { withCredentials: true }
+      );
+      addToCart(product, count);
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000);
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+    }
   };
 
   /* ───── review: ADD ───── */

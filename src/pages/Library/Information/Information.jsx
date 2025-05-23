@@ -36,7 +36,7 @@ function LibraryInformation() {
         }
 
         const response = await axios.get(
-          `${API_BASE_URL}api/v1/library/${userId}/info`
+          `${API_BASE_URL}api/v1/library/${userId}/info`,
         );
 
         setLibraryData({
@@ -119,6 +119,7 @@ function LibraryInformation() {
         `${API_BASE_URL}api/v1/library/${userId}/edite_profile`,
         formData,
         {
+          withCredentials: true,
           headers: {
             "Content-Type": "multipart/form-data",
           },

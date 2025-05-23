@@ -2,7 +2,11 @@
 import "./App.css";
 import Home from "./pages/Home/Home";
 
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import Signup from "./pages/Auth/Student/Signup/Signup";
 import Login from "./pages/Auth/Student/Login/Login";
 import SignupLibrary from "./pages/Auth/Library/SingupLibrary/signuplibrary";
@@ -35,42 +39,179 @@ import Shipping from "./pages/Student/Shipping/shipping.jsx";
 import OrderSuccess from "./pages/Student/OrderSuccess/ordersuccess.jsx";
 import PredictForm from "./components/adminComponents/PredictForm/predictform.jsx";
 import LevelProducts from "./pages/Student/LevelProducts/levelproducts.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import TestAuthGuard from "./components/TestAuthGuard/TestAuthGuard.jsx";
+import {
+  AuthGuard,
+  NoAuthGuard,
+  RoleBasedGuard,
+} from "./components/AuthGuard/AuthGuard";
+
 let x = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
     children: [
+      // Public routes accessible to everyone
       { index: true, element: <Home /> },
-      // { path: " ", element: <Home /> },
-      { path: "signuplibrary", element: <SignupLibrary /> },
-      { path: "loginlibrary", element: <LibraryLogin /> },
-      { path: "forgetpasswordlibrary", element: <ForgotPasswordLibrary /> },
-      { path: "signup", element: <Signup /> },
-      { path: "login", element: <Login /> },
-      { path: "productshome", element: <ProductsHome /> },
-      { path: "cart", element: <Cart /> },
-      { path: "shipping", element: <Shipping /> },
-      { path: "order-success", element: <OrderSuccess /> },
-      { path: "/chat", element: <Chatbot /> },
-      { path: "wishlist", element: <Wishlist /> },
-      { path: "productdetails/:id", element: <ProductDetails /> },
-      { path: "forgetpassword", element: <ForgotPassword /> },
-      { path: "MiniDrawer", element: <MiniDrawer /> },
-      { path: "HomeDrawer", element: <HomeDrawer /> },
       { path: "home", element: <Home /> },
-      { path: "items", element: <ItemsLibrary /> },
+      { path: "auth-status", element: <TestAuthGuard /> },
 
-      // children: [{path:"/addItem",element:<AddItem/>}]},
-      { path: "MiniDrawer/add-items", element: <AddItem /> },
+      // Auth routes (accessible only when NOT logged in)
+      {
+        path: "signuplibrary",
+        element: (
+          <NoAuthGuard>
+            <SignupLibrary />
+          </NoAuthGuard>
+        ),
+      },
+      {
+        path: "loginlibrary",
+        element: (
+          <NoAuthGuard>
+            <LibraryLogin />
+          </NoAuthGuard>
+        ),
+      },
+      {
+        path: "forgetpasswordlibrary",
+        element: (
+          <NoAuthGuard>
+            <ForgotPasswordLibrary />
+          </NoAuthGuard>
+        ),
+      },
+      {
+        path: "signup",
+        element: (
+          <NoAuthGuard>
+            <Signup />
+          </NoAuthGuard>
+        ),
+      },
+      {
+        path: "login",
+        element: (
+          <NoAuthGuard>
+            <Login />
+          </NoAuthGuard>
+        ),
+      },
+      {
+        path: "forgetpassword",
+        element: (
+          <NoAuthGuard>
+            <ForgotPassword />
+          </NoAuthGuard>
+        ),
+      },
+
+      // Student-specific routes
+      {
+        path: "productshome",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <ProductsHome />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "cart",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <Cart />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "shipping",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <Shipping />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "order-success",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <OrderSuccess />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "wishlist",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <Wishlist />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "productdetails/:id",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <ProductDetails />
+          </AuthGuard>
+        ),
+      },
       {
         path: "faculty/:facultyName/level/:levelNumber",
-        element: <LevelProducts />,
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <LevelProducts />
+          </AuthGuard>
+        ),
+      },
+
+      // Common authenticated routes
+      {
+        path: "/chat",
+        element: (
+          <AuthGuard allowedRoles={["student", "library", "admin"]}>
+            <Chatbot />
+          </AuthGuard>
+        ),
+      },
+
+      // Legacy routes with student access
+
+      {
+        path: "HomeDrawer",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <HomeDrawer />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "items",
+        element: (
+          <AuthGuard allowedRoles={["student", "library"]}>
+            <ItemsLibrary />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "MiniDrawer/add-items",
+        element: (
+          <AuthGuard allowedRoles={["student", "library"]}>
+            <AddItem />
+          </AuthGuard>
+        ),
       },
     ],
   },
+
+  // Library routes
   {
     path: "/minidrawer",
-    element: <Layout />,
+    element: (
+      <RoleBasedGuard requiredRole="library" redirectPath="/">
+        <Layout />
+      </RoleBasedGuard>
+    ),
     children: [
       {
         element: <MiniDrawer />,
@@ -80,7 +221,6 @@ let x = createBrowserRouter([
           { path: "items", element: <ItemsLibrary /> },
           { path: "items/additems", element: <AddItem /> },
           { path: "items/edititems/:id", element: <EditItem /> },
-          // Add other nested routes as needed
           {
             path: "orders",
             element: <OrderTable />,
@@ -91,19 +231,24 @@ let x = createBrowserRouter([
       },
     ],
   },
+
+  // Admin routes
   {
     path: "/adminedrawer",
-    element: <Layout />,
+    element: (
+      <RoleBasedGuard requiredRole="admin" redirectPath="/">
+        <Layout />
+      </RoleBasedGuard>
+    ),
     children: [
       {
         element: <MiniDrawer2 />,
         children: [
-          { index: true, element: <div>Welcome to MiniDrawer2</div> }, // optional default
+          { index: true, element: <div>Welcome to MiniDrawer2</div> },
           { path: "adminDashboard", element: <AdminDashboard /> },
           { path: "stores", element: <Stores /> },
           { path: "request", element: <Requests /> },
           { path: "predict", element: <PredictForm /> },
-          // other nested routes can go here
         ],
       },
     ],
@@ -115,7 +260,9 @@ function App() {
     <ItemsProvider>
       <CartProvider>
         <WishlistProvider>
-          <RouterProvider router={x} />
+          <AuthProvider>
+            <RouterProvider router={x} />
+          </AuthProvider>
         </WishlistProvider>
       </CartProvider>
     </ItemsProvider>

@@ -25,15 +25,16 @@ import logoutIcon from "../../assets/Header/logout.svg";
 
 import { useCart } from "../../pages/Student/CartContext/CartContext";
 import { useWishlist } from "../../pages/Student/WishListContext/WishListContext";
+import { useAuth } from "../../context/AuthContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function Navbar() {
   /* ─── Role & Auth ─────────────────────────────────────────────────── */
-  const userRole = localStorage.getItem("role"); // "library" | "student" | "admin" | null
+  const { isAuthenticated, userRole, userId, logout } = useAuth();
   const isLibrary = userRole === "library";
   const isStudent = userRole === "student";
-  const userId = localStorage.getItem("userId");
+  const isAdmin = userRole === "admin";
   const navigate = useNavigate();
 
   const { cartCount } = useCart();
@@ -297,32 +298,9 @@ export default function Navbar() {
     };
   }, [isStudent, userId]);
 
-  /* ─── Login state (unchanged) ───────────────────────────────────── */
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true"
-  );
-
-  useEffect(() => {
-    const endpoint =
-      userRole === "library"
-        ? "auth/library/library-data"
-        : "auth/student/user-data";
-    axios
-      .get(`${API_BASE_URL}api/v1/${endpoint}`, { withCredentials: true })
-      .then((res) => {
-        if (res.status === 200) {
-          setIsLoggedIn(true);
-          localStorage.setItem("isLoggedIn", "true");
-        } else {
-          setIsLoggedIn(false);
-          localStorage.removeItem("isLoggedIn");
-        }
-      })
-      .catch(() => {
-        setIsLoggedIn(false);
-        localStorage.removeItem("isLoggedIn");
-      });
-  }, [userRole]);
+  /* ─── Login state (using AuthContext) ────────────────────────────── */
+  // isAuthenticated comes directly from AuthContext now
+  // No need to manually check or update localStorage
 
   /* ─── Responsive helper ─────────────────────────────────────────── */
   const [isSmall, setIsSmall] = useState(window.innerWidth <= 1024);
@@ -357,15 +335,13 @@ export default function Navbar() {
   }, [sideOpen, avatarOpen]);
 
   /* ─── Handlers ──────────────────────────────────────────────────── */
-  const handleLogout = () => {
-    axios
-      .post(`${API_BASE_URL}api/v1/auth/logout`, {}, { withCredentials: true })
-      .then(() => {
-        setIsLoggedIn(false);
-        localStorage.clear();
-        window.location.href = "/";
-      })
-      .catch((err) => console.error("Logout error:", err));
+  const handleLogout = async () => {
+    try {
+      await logout(); // Use the logout function from AuthContext
+      navigate("/"); // Use React Router's navigate instead of window.location
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
   };
 
   /* ─── Render ───────────────────────────────────────────────────── */
@@ -423,7 +399,7 @@ export default function Navbar() {
           {/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */}
           <div className="flex items-center space-x-3 ml-auto overflow-visible">
             {/* Admin notifications */}
-            {isLoggedIn && userRole === "admin" && (
+            {isAuthenticated && isAdmin && (
               <div ref={adminNotifRef} className="relative">
                 <button
                   onClick={() => setAdminNotifDropdownOpen((o) => !o)}
@@ -466,7 +442,7 @@ export default function Navbar() {
             )}
 
             {/* Library order notifications */}
-            {isLoggedIn && isLibrary && (
+            {isAuthenticated && isLibrary && (
               <div ref={orderNotifRef} className="relative">
                 <button
                   onClick={() => setOrderNotifDropdownOpen((o) => !o)}
@@ -516,7 +492,7 @@ export default function Navbar() {
             )} */}
 
             {/* Wishlist & Cart for students / guests */}
-            {(!isLoggedIn || isStudent) && (
+            {(!isAuthenticated || isStudent) && (
               <>
                 <div className="relative">
                   <button onClick={() => navigate("/wishlist")}>
@@ -567,7 +543,7 @@ export default function Navbar() {
                   style={{ boxShadow: "0 4px 4px 0 #00000040" }}
                 >
                   <div className="p-4">
-                    {isLoggedIn ? (
+                    {isAuthenticated ? (
                       <>
                         {/* ───── link visible ONLY for libraries ───── */}
                         {isLibrary && (
@@ -656,7 +632,7 @@ export default function Navbar() {
                         </button>
                       </>
                     ) : (
-                      /* not logged-in: Login / Signup (unchanged) */
+                      /* not logged-in: Login / Signup options */
                       <>
                         <NavLink
                           to="/login"
@@ -668,7 +644,7 @@ export default function Navbar() {
                         </NavLink>
                         <NavLink
                           to="/signup"
-                          className="flex items-center justify-between"
+                          className="flex items-center justify-between mb-4"
                           onClick={() => setAvatarOpen(false)}
                         >
                           <span className="text-white">Signup</span>

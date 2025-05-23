@@ -11,6 +11,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { Outlet, NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Swal from "sweetalert2";
 
 // LogoutPage component
@@ -61,33 +62,33 @@ const NAVIGATION = [
       },
     ],
   },
-  {
-    title: "Analytics",
-    items: [
-      {
-        title: "Reports",
-        icon: <BarChart size={20} />,
-        path: "/reports",
-        children: [
-          {
-            title: "Sales",
-            icon: <FileText size={20} />,
-            path: "/reports/sales",
-          },
-          {
-            title: "Traffic",
-            icon: <FileText size={20} />,
-            path: "/reports/traffic",
-          },
-        ],
-      },
-      {
-        title: "Integrations",
-        icon: <Layers size={20} />,
-        path: "/integrations",
-      },
-    ],
-  },
+  // {
+  //   title: "Analytics",
+  //   items: [
+  //     {
+  //       title: "Reports",
+  //       icon: <BarChart size={20} />,
+  //       path: "/reports",
+  //       children: [
+  //         {
+  //           title: "Sales",
+  //           icon: <FileText size={20} />,
+  //           path: "/reports/sales",
+  //         },
+  //         {
+  //           title: "Traffic",
+  //           icon: <FileText size={20} />,
+  //           path: "/reports/traffic",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       title: "Integrations",
+  //       icon: <Layers size={20} />,
+  //       path: "/integrations",
+  //     },
+  //   ],
+  // },
 ];
 
 function MiniDrawer() {
@@ -96,6 +97,7 @@ function MiniDrawer() {
   const [isReportsExpanded, setIsReportsExpanded] = useState(false);
   const [isLoggedOut, setIsLoggedOut] = useState(false); // State to track logout
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   const handleLogout = async () => {
@@ -110,28 +112,18 @@ function MiniDrawer() {
       reverseButtons: true,
     });
 
-    /* 2️⃣ If they hit “No” just return */
+    /* 2️⃣ If they hit "No" just return */
     if (!result.isConfirmed) return;
 
     /* 3️⃣ Proceed with the real logout */
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}api/v1/auth/logout`,
-        {},
-        { withCredentials: true }
-      );
+      await logout(); // Use the logout function from AuthContext
 
-      if (response.status === 200) {
-        localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("role");
+      /* optional success toast */
+      await Swal.fire("Logged out", "See you soon!", "success");
 
-        /* optional success toast */
-        await Swal.fire("Logged out", "See you soon!", "success");
-
-        setIsLoggedOut(true);
-        setTimeout(() => navigate("/"), 1000);
-      }
+      setIsLoggedOut(true);
+      setTimeout(() => navigate("/"), 1000);
     } catch (error) {
       Swal.fire(
         "Error!",
@@ -153,7 +145,7 @@ function MiniDrawer() {
       <aside
         className={`shadow-lg transition-all duration-300 ${
           isOpen ? "w-64" : "w-20"
-        } relative`}
+        } h-screen sticky top-0`}
         style={{ backgroundColor: "#001F54" }}
         onMouseEnter={() => setIsOpen(true)}
         onMouseLeave={() => setIsOpen(false)}
