@@ -68,7 +68,7 @@ export default function HomeStudent() {
             No products match “{query}”
           </div>
         ) : (
-          <div className="flex flex-wrap">
+          <div className="flex flex-wrap ">
             {visible.map((p) => (
               <ProductCard key={p._id} product={p} />
             ))}
