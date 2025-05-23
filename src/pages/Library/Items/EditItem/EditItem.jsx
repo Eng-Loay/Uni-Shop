@@ -33,7 +33,7 @@ const EditItem = () => {
       try {
         const response = await axios.get(
           `${API_BASE_URL}api/v1/auth/library/${userId}/items`
-        );
+);
         const allItems = response.data.data;
 
         // Find the specific item by ID
@@ -71,7 +71,11 @@ const EditItem = () => {
     try {
       await axios.patch(
         `${API_BASE_URL}api/v1/auth/library/${userId}/edite_product/${id}`,
-        formData
+        formData,
+        {
+          withCredentials: true,
+
+}
       );
       Swal.fire({
         title: "Item updated successfully!",

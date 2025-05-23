@@ -40,54 +40,52 @@ export default function Navbar() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
 
-  /* ─── SEARCH (pure front-end with auto-complete) ──────────────────── */
-  const [allNames, setAllNames] = useState([]); // [{ raw, lower }]
+  /* ─── SEARCH (remote auto-complete) ──────────────────────────────── */
   const [term, setTerm] = useState("");
-  const [suggestions, setSuggest] = useState([]); // array of raw names
-  const [index, setIndex] = useState(-1); // highlighted suggestion
+  const [suggestions, setSuggest] = useState([]); // array of names
+  const [index, setIndex] = useState(-1);         // highlighted suggestion
   const searchRef = useRef(null);
   const suggestBoxRef = useRef(null);
 
-  /* load names once */
-  // useEffect(() => {
-  //   // debounce – wait 300 ms after the last key-stroke
-  //   const id = setTimeout(() => {
-  //     const t = term.trim();
-  //     const base = isLibrary ? "/minidrawer/items" : "/productshome";
-
-  //     if (t) {
-  //       // replace:true so we don’t clutter browser history
-  //       navigate(`${base}?search=${encodeURIComponent(t)}`, { replace: true });
-  //     } else {
-  //       navigate(base, { replace: true });
-  //     }
-  //   }, 300);
-
-  //   return () => clearTimeout(id); // clear on next key-stroke
-  // }, [term, isLibrary, navigate]);
-
+  // 1) fetch suggestions from API
   const refreshSuggestions = (value) => {
-    const v = value.toLowerCase().trim();
-    if (!v) {
+    const q = value.trim();
+    if (!q) {
       setSuggest([]);
       return;
     }
-    setSuggest(
-      allNames
-        .filter(({ lower }) => lower.includes(v))
-        .slice(0, 6)
-        .map(({ raw }) => raw)
-    );
-    setIndex(-1);
+    axios
+      .get(`${API_BASE_URL}api/v1/product/search`, {
+        params: {
+          page: 1,
+          name: q,
+          order: "desc",
+          sortBy: "rating",
+          library_name: "new",
+        },
+      })
+      .then((res) => {
+        const names = res.data.data.map((p) => p.name).slice(0, 6);
+        setSuggest(names);
+        setIndex(-1);
+      })
+      .catch((err) => {
+        console.error("search suggestions error:", err);
+        setSuggest([]);
+      });
   };
+
+  // 2) debounce input → refreshSuggestions
+  useEffect(() => {
+    const id = setTimeout(() => refreshSuggestions(term), 300);
+    return () => clearTimeout(id);
+  }, [term]);
 
   const commitSearch = (value) => {
     const name = value?.trim();
     if (!name) return;
-    const path = isLibrary
-      ? `/minidrawer/items?search=${encodeURIComponent(name)}`
-      : `/productshome?search=${encodeURIComponent(name)}`;
-    navigate(path);
+    const base = isLibrary ? "/minidrawer/items" : "/productshome";
+    navigate(`${base}?search=${encodeURIComponent(name)}`, { replace: true });
     setTerm("");
     setSuggest([]);
     setIndex(-1);
@@ -95,9 +93,7 @@ export default function Navbar() {
   };
 
   const onChange = (e) => {
-    const v = e.target.value;
-    setTerm(v);
-    refreshSuggestions(v);
+    setTerm(e.target.value);
   };
 
   const onKeyDown = (e) => {
@@ -122,7 +118,7 @@ export default function Navbar() {
     }
   };
 
-  /* click outside -> close suggestions */
+  // click outside -> close suggestions
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -147,22 +143,23 @@ export default function Navbar() {
   const [orderNotifDropdownOpen, setOrderNotifDropdownOpen] = useState(false);
   const orderNotifRef = useRef(null);
 
-  /* outside click for notification dropdowns */
+  // outside click for notification dropdowns
   useEffect(() => {
     const handler = (e) => {
       if (
         adminNotifDropdownOpen &&
         adminNotifRef.current &&
         !adminNotifRef.current.contains(e.target)
-      )
+      ) {
         setAdminNotifDropdownOpen(false);
-
+      }
       if (
         orderNotifDropdownOpen &&
         orderNotifRef.current &&
         !orderNotifRef.current.contains(e.target)
-      )
+      ) {
         setOrderNotifDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -172,12 +169,10 @@ export default function Navbar() {
   useEffect(() => {
     if (userRole !== "admin" || !userId) return;
     socket.emit("register", userId);
-
     const listener = (library) => {
       const name = library.name || library.username || "New Library";
       const id = library._id || Date.now();
       setAdminNotifications((prev) => [{ id, name }, ...prev]);
-
       toast.info(
         <div className="bg-[#001F54] rounded-lg shadow-lg overflow-hidden w-80">
           <div className="flex items-center px-4 py-3 space-x-2">
@@ -211,7 +206,6 @@ export default function Navbar() {
         }
       );
     };
-
     socket.on("library-request", listener);
     return () => socket.off("library-request", listener);
   }, [userRole, userId, navigate]);
@@ -220,12 +214,10 @@ export default function Navbar() {
   useEffect(() => {
     if (!isLibrary || !userId) return;
     socket.emit("register", userId);
-
     const listener = (payload) => {
       const id = `${payload.orderId}-${Date.now()}`;
       const title = `Order #${payload.orderId} from ${payload.customer_name}`;
       setOrderNotifications((prev) => [{ id, title, ...payload }, ...prev]);
-
       toast.info(
         <div className="bg-[#001F54] rounded-lg shadow-lg overflow-hidden w-80">
           <div className="flex items-center px-4 py-3 space-x-2">
@@ -259,29 +251,23 @@ export default function Navbar() {
         }
       );
     };
-
     socket.on("order-notification", listener);
     return () => socket.off("order-notification", listener);
-  }, [isLibrary, userId, navigate]);
+  }, [isLibrary, userRole, userId, navigate]);
+
+  /* ─── SOCKET: student birthday alert ─────────────────────────────── */
   useEffect(() => {
-    // Run ONLY for logged-in students
     if (!isStudent || !userId) return;
-
-    // Make sure the user is registered
     socket.emit("register", userId);
-    console.log("🎈 Registering socket for birthday check:", userId);
-
-    // Listener for birthday event (expects a simple message string)
     const listener = (message) => {
-      console.log("🎁 Birthday message received:", message);
       Swal.fire({
-        title: `🎉 Happy Birthday!`,
+        title: "🎉 Happy Birthday!",
         html: `
-        <div class="flex flex-col items-center">
-          <img src="https://cdn-icons-png.flaticon.com/512/3159/3159066.png" style="width:190px;margin-bottom:12px;border-radius:8px" />
-          <p class="text-[#001F54]">${message}</p>
-          </div>
-        `,
+          <div class="flex flex-col items-center">
+            <img src="https://cdn-icons-png.flaticon.com/512/3159/3159066.png"
+                 style="width:190px;margin-bottom:12px;border-radius:8px" />
+            <p class="text-[#001F54]">${message}</p>
+          </div>`,
         width: 360,
         background: "#fff",
         confirmButtonColor: "#001F54",
@@ -290,17 +276,19 @@ export default function Navbar() {
         padding: "1.5rem",
       });
     };
-
     socket.on("birthday", listener);
-
-    return () => {
-      socket.off("birthday", listener); // cleanup
-    };
+    return () => socket.off("birthday", listener);
   }, [isStudent, userId]);
 
-  /* ─── Login state (using AuthContext) ────────────────────────────── */
-  // isAuthenticated comes directly from AuthContext now
-  // No need to manually check or update localStorage
+  /* ─── Login/Logout ───────────────────────────────────────────────── */
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
 
   /* ─── Responsive helper ─────────────────────────────────────────── */
   const [isSmall, setIsSmall] = useState(window.innerWidth <= 1024);
@@ -310,7 +298,7 @@ export default function Navbar() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  /* ─── Sidebar & dropdowns (unchanged) ───────────────────────────── */
+  /* ─── Sidebar & dropdowns ──────────────────────────────────────── */
   const [sideOpen, setSideOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -334,20 +322,10 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", clickOutside);
   }, [sideOpen, avatarOpen]);
 
-  /* ─── Handlers ──────────────────────────────────────────────────── */
-  const handleLogout = async () => {
-    try {
-      await logout(); // Use the logout function from AuthContext
-      navigate("/"); // Use React Router's navigate instead of window.location
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
-
   /* ─── Render ───────────────────────────────────────────────────── */
   return (
     <div className="overflow-x-hidden">
-      <nav className="w-full bg-[#001F54] overflow-visible relative ">
+      <nav className="w-full bg-[#001F54] overflow-visible relative">
         <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8">
           {/* Logo */}
           <NavLink to="/" className="flex items-center overflow-hidden">
@@ -373,7 +351,6 @@ export default function Navbar() {
                   className="w-full h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm md:text-base"
                 />
               </div>
-
               {suggestions.length > 0 && (
                 <ul
                   ref={suggestBoxRef}
@@ -396,7 +373,6 @@ export default function Navbar() {
           )}
 
           {/* Right-side icons (notifications, wishlist, cart, avatar…) */}
-          {/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */}
           <div className="flex items-center space-x-3 ml-auto overflow-visible">
             {/* Admin notifications */}
             {isAuthenticated && isAdmin && (
@@ -484,13 +460,6 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Settings (non-student) */}
-            {/* {isLoggedIn && !isStudent && (
-              <button className="cursor-pointer">
-                <IoSettingsOutline className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              </button>
-            )} */}
-
             {/* Wishlist & Cart for students / guests */}
             {(!isAuthenticated || isStudent) && (
               <>
@@ -525,8 +494,7 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Avatar */}
-            {/* Avatar (click-to-open dropdown) */}
+            {/* Avatar dropdown */}
             <div ref={avatarRef} className="relative">
               <button
                 onClick={() => setAvatarOpen((o) => !o)}
@@ -535,17 +503,16 @@ export default function Navbar() {
                 <img src={hug} alt="User" className="w-6 h-6 sm:w-8 sm:h-8" />
               </button>
 
-              {/* ---------------- DROPDOWN ---------------- */}
               {avatarOpen && (
                 <div
-                  className={`fixed w-[299px] ${isSmall ? "top-[88px] right-4" : "right-4"}
-                  bg-[#001F54] shadow-lg rounded-md z-[120]`}
+                  className={`fixed w-[299px] ${
+                    isSmall ? "top-[88px] right-4" : "right-4"
+                  } bg-[#001F54] shadow-lg rounded-md z-[120]`}
                   style={{ boxShadow: "0 4px 4px 0 #00000040" }}
                 >
                   <div className="p-4">
                     {isAuthenticated ? (
                       <>
-                        {/* ───── link visible ONLY for libraries ───── */}
                         {isLibrary && (
                           <NavLink
                             to="/minidrawer/information"
@@ -556,8 +523,6 @@ export default function Navbar() {
                             <img src={profileIcon} alt="" className="w-6 h-6" />
                           </NavLink>
                         )}
-
-                        {/* Home (all roles) */}
                         <NavLink
                           to="/"
                           className="flex items-center justify-between mb-4"
@@ -566,26 +531,6 @@ export default function Navbar() {
                           <span className="text-white">Home</span>
                           <img src={homeIcon} alt="" className="w-6 h-6" />
                         </NavLink>
-
-                        {/* Privacy & Help (all roles) */}
-                        {/* <NavLink
-                          to="/privacy"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setAvatarOpen(false)}
-                        >
-                          <span className="text-white">Privacy</span>
-                          <img src={privacyIcon} alt="" className="w-6 h-6" />
-                        </NavLink>
-                        <NavLink
-                          to="/help"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setAvatarOpen(false)}
-                        >
-                          <span className="text-white">Help</span>
-                          <img src={helpIcon} alt="" className="w-6 h-6" />
-                        </NavLink> */}
-
-                        {/* ───── dashboard / products variations ───── */}
                         {userRole === "admin" && (
                           <NavLink
                             to="/adminedrawer/adminDashboard"
@@ -596,7 +541,6 @@ export default function Navbar() {
                             <MdDashboard className="w-6 h-6 text-white" />
                           </NavLink>
                         )}
-
                         {isLibrary && (
                           <NavLink
                             to="/MiniDrawer/home"
@@ -607,7 +551,6 @@ export default function Navbar() {
                             <MdDashboard className="w-6 h-6 text-white" />
                           </NavLink>
                         )}
-
                         {isStudent && (
                           <NavLink
                             to="/productshome"
@@ -618,21 +561,19 @@ export default function Navbar() {
                             <MdDashboard className="w-6 h-6 text-white" />
                           </NavLink>
                         )}
-
-                        {/* Language picker (unchanged) … */}
-                        {/* … */}
-
-                        {/* Logout */}
                         <button
                           onClick={handleLogout}
                           className="flex items-center justify-between mb-4 w-full"
                         >
                           <span className="text-white">Logout</span>
-                          <img src={logoutIcon} alt="" className="w-6 h-6" />
+                          <img
+                            src={logoutIcon}
+                            alt=""
+                            className="w-6 h-6"
+                          />
                         </button>
                       </>
                     ) : (
-                      /* not logged-in: Login / Signup options */
                       <>
                         <NavLink
                           to="/login"
@@ -674,7 +615,6 @@ export default function Navbar() {
                 className="w-full h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm"
               />
             </div>
-
             {suggestions.length > 0 && (
               <ul
                 ref={suggestBoxRef}
@@ -713,7 +653,10 @@ export default function Navbar() {
         >
           <div className="p-4" style={{ fontFamily: "Hedvig Letters Sans" }}>
             <div className="flex items-center mb-6">
-              <button onClick={() => setSideOpen(false)} className="space-y-1">
+              <button
+                onClick={() => setSideOpen(false)}
+                className="space-y-1"
+              >
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}

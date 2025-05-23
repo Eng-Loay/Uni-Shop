@@ -41,11 +41,14 @@ import PredictForm from "./components/adminComponents/PredictForm/predictform.js
 import LevelProducts from "./pages/Student/LevelProducts/levelproducts.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import TestAuthGuard from "./components/TestAuthGuard/TestAuthGuard.jsx";
+
+
 import {
   AuthGuard,
   NoAuthGuard,
   RoleBasedGuard,
 } from "./components/AuthGuard/AuthGuard";
+import Department from "./UI/Home/Packages/Department.jsx";
 
 let x = createBrowserRouter([
   {
@@ -113,6 +116,14 @@ let x = createBrowserRouter([
         element: (
           <AuthGuard allowedRoles={["student"]}>
             <ProductsHome />
+          </AuthGuard>
+        ),
+      },
+       {
+        path: "/department/:departmentName",
+        element: (
+          <AuthGuard allowedRoles={["student"]}>
+            <Department />
           </AuthGuard>
         ),
       },
@@ -221,6 +232,7 @@ let x = createBrowserRouter([
           { path: "items", element: <ItemsLibrary /> },
           { path: "items/additems", element: <AddItem /> },
           { path: "items/edititems/:id", element: <EditItem /> },
+           { path: "items/itemsdetails/:id", element: <ItemsDetails /> },
           {
             path: "orders",
             element: <OrderTable />,

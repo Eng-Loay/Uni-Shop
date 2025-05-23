@@ -66,6 +66,7 @@ function AddItem() {
         `${API_BASE_URL}api/v1/auth/library/${userId}/new_product`,
         formData,
         {
+          withCredentials:true,
           headers: {
             "Content-Type": "multipart/form-data",
           },

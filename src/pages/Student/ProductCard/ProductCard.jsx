@@ -82,12 +82,12 @@ function ProductCard({ product }) {
           }`}
         />
       </button>
-
+       <div className="w-full h-full">
       <div className="product relative bg-white p-2 rounded-lg shadow-md">
         <img
           src={product.product_pictures?.[0]?.secure_url}
           alt={product.name}
-          className="w-full h-60 object-cover rounded"
+          className="w-full h-48 object-cover rounded"
         />
 
         <div className="flex justify-between items-center py-2">
@@ -135,7 +135,7 @@ function ProductCard({ product }) {
           Add to cart
         </button>
       </div>
-
+</div>
       {showPopup && (
         <div className="fixed top-15 right-5 w-72 bg-white border border-green-400 shadow-lg rounded-lg p-4 z-50">
           <h3 className="text-green-600 font-bold mb-2">Item Added to Cart</h3>
