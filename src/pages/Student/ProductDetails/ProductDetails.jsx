@@ -14,9 +14,12 @@ import ProductCard from "../ProductCard/ProductCard";
 
 const raw = import.meta.env.VITE_API_URL || "";
 const API_BASE_URL = raw.endsWith("/") ? raw : `${raw}/`;
-const CHAT_API_URL = import.meta.env.VITE_CHAT_API_URL;
+const CHAT_API_URL = import.meta.env.VITE_RECOMENDTION_API_URL;
 
-/* ————————————————— helper ————————————————— */
+/* ───────────────── helpers ───────────────── */
+const safeStars = (n = 0) =>
+  Array.from({ length: Math.max(0, Math.min(5, Math.round(Number(n) || 0))) });
+
 function extractReviews(p) {
   if (Array.isArray(p?.reviews)) return p.reviews;
   if (Array.isArray(p?.data?.reviews)) return p.data.reviews;
@@ -29,7 +32,7 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  /* ————— state ————— */
+  /* ───── state ───── */
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
@@ -42,10 +45,10 @@ export default function ProductDetails() {
   const [newRating, setNewRating] = useState(0);
   const [newComment, setNewComment] = useState("");
 
-  /* current user in localStorage may be { _id } OR { id } */
+  /* current user id (string) */
   const currentUserId = (localStorage.getItem("userId") || "").toString();
 
-  /* ————— fetch helpers ————— */
+  /* ───── fetch helpers ───── */
   const refreshProduct = async () => {
     const res = await axios.get(`${API_BASE_URL}api/v1/product/${id}/details`, {
       withCredentials: true,
@@ -64,21 +67,21 @@ export default function ProductDetails() {
 
   /* recommendations */
   useEffect(() => {
-    if (!product) return;
+    if (!product?._id) return;
     axios
-      .post(`${CHAT_API_URL}recommend`, { id: 0, top_n: 4 })
-      .then((r) => setRecommendations(r.data))
+      .post(`${CHAT_API_URL}recommend`, { id: product.id, top_n: 4 })
+      .then((r) => setRecommendations(r.data || []))
       .catch(() => toast.error("Recommendation service unavailable"));
   }, [product]);
 
-  /* ————— cart ————— */
+  /* ───── cart ───── */
   const handleAddToCart = () => {
     addToCart(product, count);
     setShowPopup(true);
     setTimeout(() => setShowPopup(false), 3000);
   };
 
-  /* ————— review: ADD ————— */
+  /* ───── review: ADD ───── */
   const addReview = async (e) => {
     e.preventDefault();
     if (!newRating || !newComment.trim()) {
@@ -100,7 +103,7 @@ export default function ProductDetails() {
     }
   };
 
-  /* ————— review: DELETE ————— */
+  /* ───── review: DELETE ───── */
   const deleteReview = async (reviewId) => {
     const { isConfirmed } = await Swal.fire({
       title: "Delete review?",
@@ -124,7 +127,7 @@ export default function ProductDetails() {
     }
   };
 
-  /* ————— review: UPDATE ————— */
+  /* ───── review: UPDATE ───── */
   const updateReview = async (reviewId, currentRating, currentComment) => {
     const { value: form } = await Swal.fire({
       title: "Edit your review",
@@ -174,9 +177,11 @@ export default function ProductDetails() {
     );
   if (!product) return <p className="text-center">Item not found.</p>;
 
-  /* ————— derived ————— */
+  /* ───── derived ───── */
   const imgs = product.product_pictures?.map((p) => p.secure_url) || [];
-  const adaptedRecs = recommendations.map((r) => ({
+  const mainImg = imgs[selectedImageIndex];
+
+  const adaptedRecs = (recommendations || []).map((r) => ({
     _id: r.id?.toString(),
     name: r.product,
     price: r.price,
@@ -184,7 +189,9 @@ export default function ProductDetails() {
     in_stock: !r.is_out_of_stock,
     product_pictures: [{ secure_url: r.image }],
   }));
+
   const orderedReviews = [
+    /* mine first */
     ...reviews.filter(
       (r) =>
         (
@@ -207,17 +214,18 @@ export default function ProductDetails() {
     ),
   ];
 
-  /* rating summary (static bars) */
-  const starLabels = { 5: "Five", 4: "Four", 3: "Three", 2: "Two", 1: "One" };
+  /* rating summary */
   const totalReviews = reviews.length;
   const averageRating = totalReviews
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / totalReviews).toFixed(1)
+    ? (
+        reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / totalReviews
+      ).toFixed(1)
     : "0.0";
 
-  /* ————— UI ————— */
+  /* ───── UI ───── */
   return (
     <div className="container mx-auto max-w-7xl px-4 py-10">
-      {/* ------------- Back btn ------------- */}
+      {/* back */}
       <button
         onClick={() => navigate(-1)}
         className="flex items-center text-blue-700 hover:text-blue-900 mb-6"
@@ -225,21 +233,18 @@ export default function ProductDetails() {
         <ArrowLeft className="mr-2" /> Back to Products
       </button>
 
-      {/* ------------- Product section ------------- */}
+      {/* product section */}
       <div className="flex flex-col lg:flex-row gap-8">
         {/* images */}
         <div className="w-full lg:w-1/2 flex flex-col">
           <div className="bg-gray-100 rounded-lg flex-grow flex items-center justify-center p-8">
             <img
-              src={imgs[selectedImageIndex]}
+              src={mainImg}
               alt={product.name}
               className="max-h-[400px] w-auto object-contain"
-              onError={(e) =>
-                (e.currentTarget.src =
-                  "https://via.placeholder.com/600x600?text=No+Image")
-              }
             />
           </div>
+
           {imgs.length > 1 && (
             <div className="grid grid-cols-4 gap-3 mt-4">
               {imgs.map((img, i) => (
@@ -252,7 +257,11 @@ export default function ProductDetails() {
                       : "border-transparent"
                   }`}
                 >
-                  <img src={img} className="w-full h-full object-cover" />
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -264,11 +273,9 @@ export default function ProductDetails() {
           <div className="flex-grow">
             <h1 className="text-3xl font-bold">{product.name}</h1>
             <div className="flex items-center mt-2 text-yellow-500">
-              {[...Array(Math.round(product.average_rating || 0))].map(
-                (_, i) => (
-                  <FaStar key={i} />
-                )
-              )}
+              {safeStars(product.average_rating).map((_, i) => (
+                <FaStar key={i} />
+              ))}
             </div>
 
             {/* specs */}
@@ -324,7 +331,7 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      {/* ---------- cart popup ---------- */}
+      {/* cart popup */}
       {showPopup && (
         <div className="fixed top-5 right-5 w-72 bg-white border border-green-400 shadow-lg rounded-lg p-4 z-50">
           <h3 className="text-green-600 font-bold mb-2">Item Added</h3>
@@ -345,7 +352,7 @@ export default function ProductDetails() {
         </div>
       )}
 
-      {/* ---------- recommendations ---------- */}
+      {/* recommendations */}
       {adaptedRecs.length > 0 && (
         <section className="mt-16">
           <h2 className="text-xl font-semibold mb-4">You Might Also Need</h2>
@@ -357,44 +364,45 @@ export default function ProductDetails() {
         </section>
       )}
 
-      {/* ---------- reviews + rating summary ---------- */}
+      {/* reviews + rating summary */}
       <section className="mt-16">
-        {/* ===== RATING SUMMARY (static bars) ===== */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-          {/* distribution bars */}
-          <div className="space-y-2 md:col-span-2">
-            {[5, 4, 3, 2, 1].map((star) => (
-              <div key={star} className="flex items-center space-x-2">
-                <span className="w-12 text-sm">{starLabels[star]}</span>
-                <FaStar className="text-yellow-400 shrink-0" />
-                <div
-                  className="flex-1 h-2 rounded"
-                  style={{ backgroundColor: "#ECE4B8" }}
-                >
-                  <div
-                    className="bg-yellow-400 h-2 rounded"
-                    style={{ width: `${star * 20}%` }}
-                  />
+        {/* rating summary */}
+        {totalReviews === 0 ? (
+          <p className="text-gray-500 mb-4">No ratings available.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+            {/* bars */}
+            <div className="space-y-2 md:col-span-2">
+              {[5, 4, 3, 2, 1].map((star) => (
+                <div key={star} className="flex items-center space-x-2">
+                  <span className="w-12 text-sm">{star}</span>
+                  <FaStar className="text-yellow-400 shrink-0" />
+                  <div className="flex-1 h-2 rounded bg-gray-200">
+                    <div
+                      className="bg-yellow-400 h-2 rounded"
+                      style={{ width: `${star * 20}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* average card */}
-          <div className="bg-blue-100 border border-blue-400 rounded-lg flex flex-col items-center justify-center p-6">
-            <span className="text-4xl font-extrabold">{averageRating}</span>
-            <div className="flex text-yellow-500 my-2">
-              {[...Array(Math.round(averageRating))].map((_, i) => (
-                <FaStar key={i} />
               ))}
             </div>
-            <p className="text-sm text-gray-700">
-              {totalReviews} {totalReviews === 1 ? "Rating" : "Ratings"}
-            </p>
-          </div>
-        </div>
 
-        {/* ----- review list & form ----- */}
+            {/* average card */}
+            <div className="bg-blue-100 border border-blue-400 rounded-lg flex flex-col items-center justify-center p-6">
+              <span className="text-4xl font-extrabold">{averageRating}</span>
+              <div className="flex text-yellow-500 my-2">
+                {safeStars(averageRating).map((_, i) => (
+                  <FaStar key={i} />
+                ))}
+              </div>
+              <p className="text-sm text-gray-700">
+                {totalReviews} {totalReviews === 1 ? "Rating" : "Ratings"}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* review list + form */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* list */}
           <div className="lg:col-span-2">
@@ -402,60 +410,60 @@ export default function ProductDetails() {
               Reviews ({orderedReviews.length})
             </h2>
 
-            {orderedReviews.length === 0 && (
+            {orderedReviews.length === 0 ? (
               <p className="text-gray-500">No reviews yet.</p>
+            ) : (
+              <ul className="space-y-6">
+                {orderedReviews.map((r) => {
+                  const reviewUserId = (
+                    r.user?._id ||
+                    r.user?.id ||
+                    r.user?.uid ||
+                    (typeof r.user === "string" ? r.user : "")
+                  ).toString();
+                  const mine = reviewUserId === currentUserId;
+
+                  return (
+                    <li
+                      key={r._id}
+                      className={`border rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-start gap-4 ${
+                        mine ? "self-end" : ""
+                      }`}
+                    >
+                      {/* stars + comment */}
+                      <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div className="flex text-yellow-500">
+                          {safeStars(r.rating).map((_, i) => (
+                            <FaStar key={i} />
+                          ))}
+                        </div>
+                        <p className="font-medium">{r.comment}</p>
+                      </div>
+
+                      {/* action buttons */}
+                      {mine && (
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() =>
+                              updateReview(r._id, r.rating, r.comment)
+                            }
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Pencil size={18} />
+                          </button>
+                          <button
+                            onClick={() => deleteReview(r._id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             )}
-
-            <ul className="space-y-6">
-              {orderedReviews.map((r) => {
-                const reviewUserId = (
-                  r.user?._id ||
-                  r.user?.id ||
-                  r.user?.uid ||
-                  (typeof r.user === "string" ? r.user : "")
-                ).toString();
-                const mine = reviewUserId === currentUserId;
-
-                return (
-                  <li
-                    key={r._id}
-                    className={`border rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-start gap-4 ${
-                      mine ? "self-end" : ""
-                    }`}
-                  >
-                    {/* stars + comment */}
-                    <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="flex text-yellow-500">
-                        {[...Array(r.rating)].map((_, i) => (
-                          <FaStar key={i} />
-                        ))}
-                      </div>
-                      <p className="font-medium">{r.comment}</p>
-                    </div>
-
-                    {/* action buttons */}
-                    {mine && (
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={() =>
-                            updateReview(r._id, r.rating, r.comment)
-                          }
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                        <button
-                          onClick={() => deleteReview(r._id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
           </div>
 
           {/* form */}

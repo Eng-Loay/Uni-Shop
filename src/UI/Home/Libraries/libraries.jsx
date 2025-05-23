@@ -1,5 +1,5 @@
 import arrow from "../../../assets/Home/Packages/arrow.svg";
-import Garo from "../../../assets/Home/Libraries/Garo.svg";
+import Garo from "../../../assets/Home/Libraries/FB_IMG_1746857717512.jpg";
 import KamalSaad from "../../../assets/Home/Libraries/KamalSaad.svg";
 import TabebMohands from "../../../assets/Home/Libraries/TabebMohands.svg";
 

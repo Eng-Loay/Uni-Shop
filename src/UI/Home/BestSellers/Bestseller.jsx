@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import Details from "./Detailbut";
 import arrow from "../../../assets/Home/BestSellers/arrow.svg";
 
@@ -36,10 +37,9 @@ function Bestseller() {
         {products.map((product) => (
           <div
             key={product._id}
-            /* fixed card width — tweak to taste */
             className="flex flex-col items-center w-[230px]"
           >
-            {/* fixed image box, keeps all images equal size */}
+            {/* Image */}
             <div className="w-full h-[180px] flex items-center justify-center">
               <img
                 src={product.product_pictures?.[0]?.secure_url}
@@ -48,22 +48,24 @@ function Bestseller() {
               />
             </div>
 
-            {/* name — reserve space so rows stay straight */}
+            {/* Name */}
             <p
               className="text-[#3E3B3B] text-[16px] mt-4 text-center leading-snug
-                         line-clamp-2 min-h-[48px]" /* 2 lines tall */
+                         line-clamp-2 min-h-[48px]"
             >
               {product.name}
             </p>
 
-            {/* price */}
+            {/* Price */}
             <p className="text-[#3E3B3B] text-[18px] font-bold mt-1">
               {Math.round(product.price)} LE
             </p>
 
-            {/* button */}
+            {/* Details button → navigates to product details */}
             <div className="mt-2">
-              <Details />
+              <NavLink to={`/productdetails/${product._id}`}>
+                <Details />
+              </NavLink>
             </div>
           </div>
         ))}

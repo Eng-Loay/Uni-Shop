@@ -34,7 +34,7 @@ import Chatbot from "./pages/ChatBot/chatbot.jsx";
 import Shipping from "./pages/Student/Shipping/shipping.jsx";
 import OrderSuccess from "./pages/Student/OrderSuccess/ordersuccess.jsx";
 import PredictForm from "./components/adminComponents/PredictForm/predictform.jsx";
-
+import LevelProducts from "./pages/Student/LevelProducts/levelproducts.jsx";
 let x = createBrowserRouter([
   {
     path: "/",
@@ -59,8 +59,13 @@ let x = createBrowserRouter([
       { path: "HomeDrawer", element: <HomeDrawer /> },
       { path: "home", element: <Home /> },
       { path: "items", element: <ItemsLibrary /> },
+
       // children: [{path:"/addItem",element:<AddItem/>}]},
       { path: "MiniDrawer/add-items", element: <AddItem /> },
+      {
+        path: "faculty/:facultyName/level/:levelNumber",
+        element: <LevelProducts />,
+      },
     ],
   },
   {
@@ -99,7 +104,6 @@ let x = createBrowserRouter([
           { path: "request", element: <Requests /> },
           { path: "predict", element: <PredictForm /> },
           // other nested routes can go here
-          
         ],
       },
     ],
