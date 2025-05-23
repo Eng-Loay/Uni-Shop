@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   BookOpen,
   User,
+  Image,
 } from "lucide-react";
 
 function SignupLibrary() {
@@ -24,13 +25,14 @@ function SignupLibrary() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
-    name: "", // Updated from libraryName to name
-    username: "", // Added username field
+    name: "",
+    username: "",
     location: "",
-    license: "", // Updated from license to license
+    license: { secure_url: "", public_id: "" }, // Updated license format
+    logo: null, // Added logo field
     email: "",
     password: "",
-    passwordConfirm: "", // Added confirmPassword field
+    passwordConfirm: "",
   });
   const API_BASE_URL = import.meta.env.VITE_API_URL;
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -89,17 +91,25 @@ function SignupLibrary() {
       setErrorMessage(""); // Clear any previous error messages
 
       try {
+        // Create FormData object
+        const formDataToSend = new FormData();
+        formDataToSend.append("name", formData.name);
+        formDataToSend.append("username", formData.username);
+        formDataToSend.append("email", formData.email);
+        formDataToSend.append("password", formData.password);
+        formDataToSend.append("passwordConfirm", formData.passwordConfirm);
+        formDataToSend.append("location", formData.location);
+        formDataToSend.append("license", formData.license); // Append license file
+        formDataToSend.append("logo", formData.logo); // Append logo file
+
         // Make API call to the signup endpoint
         const response = await axios.post(
           `${API_BASE_URL}api/v1/auth/library/signup`,
+          formDataToSend,
           {
-            name: formData.name,
-            username: formData.username,
-            email: formData.email,
-            password: formData.password,
-            passwordConfirm: formData.passwordConfirm,
-            license: formData.license,
-            location: formData.location,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
           }
         );
 
@@ -311,15 +321,15 @@ function SignupLibrary() {
                       passwordStrength < 50
                         ? "text-red-400"
                         : passwordStrength < 75
-                        ? "text-yellow-400"
-                        : "text-green-400"
+                          ? "text-yellow-400"
+                          : "text-green-400"
                     }
                   >
                     {passwordStrength < 50
                       ? "Weak"
                       : passwordStrength < 75
-                      ? "Medium"
-                      : "Strong"}
+                        ? "Medium"
+                        : "Strong"}
                   </span>
                 </p>
               </div>
@@ -382,18 +392,24 @@ function SignupLibrary() {
               Final Details 📍
             </h2>
 
+            {/* License Upload */}
             <div className="relative">
               <label className="text-white text-sm font-medium mb-2 block">
-                Library License Number
+                Library License (PDF/Image)
               </label>
               <div className="relative group">
                 <input
-                  type="text"
-                  name="license" // Updated from license to license
-                  value={formData.license}
-                  onChange={handleInputChange}
-                  className="w-full h-14 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
-                  placeholder="Enter license number"
+                  type="file"
+                  name="license"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    setFormData((prev) => ({
+                      ...prev,
+                      license: file,
+                    }));
+                  }}
+                  className="w-full h-14  p-4 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                  accept=".pdf,.jpg,.jpeg,.png"
                   required
                 />
                 <FileCheck
@@ -403,6 +419,34 @@ function SignupLibrary() {
               </div>
             </div>
 
+            {/* Logo Upload */}
+            <div className="relative">
+              <label className="text-white text-sm font-medium mb-2 block ">
+                Library Logo (Image)
+              </label>
+              <div className="relative group">
+                <input
+                  type="file"
+                  name="logo"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    setFormData((prev) => ({
+                      ...prev,
+                      logo: file,
+                    }));
+                  }}
+                  className="w-full h-14 p-4 rounded-xl bg-white/10 text-white placeholder:text-gray-400 text-sm pl-12 pr-4 border border-white/20 focus:border-indigo-400 focus:outline-none transition-all duration-200 group-hover:border-indigo-400/50"
+                  accept=".jpg,.jpeg,.png"
+                  required
+                />
+                <Image
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-indigo-400 transition-colors duration-200"
+                  size={20}
+                />
+              </div>
+            </div>
+
+            {/* Location Input */}
             <div className="relative">
               <label className="text-white text-sm font-medium mb-2 block">
                 Location

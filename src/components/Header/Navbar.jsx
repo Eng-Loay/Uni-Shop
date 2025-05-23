@@ -1,6 +1,15 @@
+// src/components/Header/Navbar.jsx
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { socket } from "../../socket";
+import { toast } from "react-toastify";
+import axios from "axios";
+import Swal from "sweetalert2";
+import "sweetalert2/src/sweetalert2.scss";
 import { MdDashboard } from "react-icons/md";
+import { IoIosNotificationsOutline } from "react-icons/io";
+// import { IoSettingsOutline } from "react-icons/io5";
 
 import searchIcon from "../../assets/Header/search-icon.svg";
 import fav from "../../assets/Header/favoritte.svg";
@@ -13,370 +22,553 @@ import privacyIcon from "../../assets/Header/privacy.svg";
 import helpIcon from "../../assets/Header/help.svg";
 import languageIcon from "../../assets/Header/language.svg";
 import logoutIcon from "../../assets/Header/logout.svg";
-import axios from "axios";
+
+import { useCart } from "../../pages/Student/CartContext/CartContext";
+import { useWishlist } from "../../pages/Student/WishListContext/WishListContext";
+import { useAuth } from "../../context/AuthContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 860);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true"
-  );
-  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+export default function Navbar() {
+  /* ─── Role & Auth ─────────────────────────────────────────────────── */
+  const { isAuthenticated, userRole, userId, logout } = useAuth();
+  const isLibrary = userRole === "library";
+  const isStudent = userRole === "student";
+  const isAdmin = userRole === "admin";
+  const navigate = useNavigate();
 
-  const sidebarRef = useRef(null);
-  // const hamburgerRef = useRef(null);
-  const dropdownRef = useRef(null);
+  const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
 
-  // Check login status on component mount
+  /* ─── SEARCH (remote auto-complete) ──────────────────────────────── */
+  const [term, setTerm] = useState("");
+  const [suggestions, setSuggest] = useState([]); // array of names
+  const [index, setIndex] = useState(-1);         // highlighted suggestion
+  const searchRef = useRef(null);
+  const suggestBoxRef = useRef(null);
+
+  // 1) fetch suggestions from API
+  const refreshSuggestions = (value) => {
+    const q = value.trim();
+    if (!q) {
+      setSuggest([]);
+      return;
+    }
+    axios
+      .get(`${API_BASE_URL}api/v1/product/search`, {
+        params: {
+          page: 1,
+          name: q,
+          order: "desc",
+          sortBy: "rating",
+          library_name: "new",
+        },
+      })
+      .then((res) => {
+        const names = res.data.data.map((p) => p.name).slice(0, 6);
+        setSuggest(names);
+        setIndex(-1);
+      })
+      .catch((err) => {
+        console.error("search suggestions error:", err);
+        setSuggest([]);
+      });
+  };
+
+  // 2) debounce input → refreshSuggestions
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}api/v1/auth/library/library-data`,
-          {
-            withCredentials: true,
-          }
-        );
+    const id = setTimeout(() => refreshSuggestions(term), 300);
+    return () => clearTimeout(id);
+  }, [term]);
 
-        if (response.status === 200) {
-          setIsLoggedIn(true);
-          localStorage.setItem("isLoggedIn", "true"); // Save login state
-        } else {
-          setIsLoggedIn(false);
-          localStorage.removeItem("isLoggedIn"); // Clear login state
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 404) {
-          console.error("Endpoint not found:", error.response.data);
-        } else {
-          console.error("Error checking login status:", error);
-        }
-        setIsLoggedIn(false);
-        localStorage.removeItem("isLoggedIn"); // Clear login state
+  const commitSearch = (value) => {
+    const name = value?.trim();
+    if (!name) return;
+    const base = isLibrary ? "/minidrawer/items" : "/productshome";
+    navigate(`${base}?search=${encodeURIComponent(name)}`, { replace: true });
+    setTerm("");
+    setSuggest([]);
+    setIndex(-1);
+    searchRef.current?.blur();
+  };
+
+  const onChange = (e) => {
+    setTerm(e.target.value);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (suggestions.length === 0) return;
+      setIndex((i) => (i + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (suggestions.length === 0) return;
+      setIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (index >= 0) {
+        commitSearch(suggestions[index]);
+      } else {
+        commitSearch(term);
+      }
+    } else if (e.key === "Escape") {
+      setSuggest([]);
+      setIndex(-1);
+    }
+  };
+
+  // click outside -> close suggestions
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        suggestBoxRef.current &&
+        !suggestBoxRef.current.contains(e.target) &&
+        !searchRef.current?.contains(e.target)
+      ) {
+        setSuggest([]);
+        setIndex(-1);
       }
     };
-
-    checkLoginStatus();
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Handle window resize for mobile detection
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 860);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  /* ───  Admin / Library notifications (unchanged)  ─────────────────── */
+  const [adminNotifications, setAdminNotifications] = useState([]);
+  const [adminNotifDropdownOpen, setAdminNotifDropdownOpen] = useState(false);
+  const adminNotifRef = useRef(null);
 
-  // Disable body scroll when sidebar is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isMenuOpen]);
+  const [orderNotifications, setOrderNotifications] = useState([]);
+  const [orderNotifDropdownOpen, setOrderNotifDropdownOpen] = useState(false);
+  const orderNotifRef = useRef(null);
 
-  // Handle click outside sidebar and dropdown
+  // outside click for notification dropdowns
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        closeMenu();
+    const handler = (e) => {
+      if (
+        adminNotifDropdownOpen &&
+        adminNotifRef.current &&
+        !adminNotifRef.current.contains(e.target)
+      ) {
+        setAdminNotifDropdownOpen(false);
       }
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
+      if (
+        orderNotifDropdownOpen &&
+        orderNotifRef.current &&
+        !orderNotifRef.current.contains(e.target)
+      ) {
+        setOrderNotifDropdownOpen(false);
       }
     };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [adminNotifDropdownOpen, orderNotifDropdownOpen]);
 
-    if (isMenuOpen || isDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isMenuOpen, isDropdownOpen]);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  const handleMouseEnter = () => {
-    if (!isMobile) {
-      setIsDropdownOpen(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!isMobile) {
-      setIsDropdownOpen(false);
-    }
-  };
-
-  const toggleDropdown = () => {
-    if (isMobile) {
-      setIsDropdownOpen(!isDropdownOpen);
-    }
-  };
-
-  const toggleLanguageDropdown = () => {
-    setLanguageDropdownOpen(!languageDropdownOpen);
-  };
-
-  const handleLanguageSelect = (language) => {
-    console.log(`Selected language: ${language}`);
-    setLanguageDropdownOpen(false); // Close the language dropdown
-  };
-
-  const handleLogout = async () => {
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}api/v1/auth/logout`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
-
-      if (response.status === 200) {
-        setIsLoggedIn(false);
-        localStorage.removeItem("isLoggedIn"); // Clear login state
-        setIsDropdownOpen(false);
-        window.location.href = "/";
-      }
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
-  };
-
-  return (
-    <div className="overflow-x-hidden">
-      <nav className="w-full bg-[#001F54] ">
-        <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8 relative">
-          {/* Hamburger Menu (Hidden when sidebar is open) */}
-          {/* {!isMenuOpen && (
-            <button
-              type="button"
-              ref={hamburgerRef}
-              className="space-y-1 mr-4 focus:outline-none cursor-pointer"
-              onClick={toggleMenu}
-            >
-              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-              <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-            </button>
-          )} */}
-
-          {/* Log in & Sign up (Desktop Only) */}
-          {!isMobile && !isLoggedIn && (
-            <ul
-              className="hidden sm:flex space-x-[20px]"
-              style={{ fontFamily: "Hedvig Letters Sans" }}
-            >
-              <li className="nav-login">
-                <NavLink
-                  to="/login"
-                  className={({ isActive }) =>
-                    `border-2 border-white rounded-[66px] w-[117px] h-[48px] flex items-center justify-center hover:bg-white hover:text-[#001F54] transition-all duration-300 ${
-                      isActive ? "bg-white text-[#001F54]" : "text-white"
-                    }`
-                  }
-                >
-                  Log in
-                </NavLink>
-              </li>
-              <li className="nav-signup">
-                <NavLink
-                  to="/signup"
-                  className={({ isActive }) =>
-                    `border-2 border-white rounded-[66px] w-[117px] h-[48px] flex items-center justify-center hover:bg-white hover:text-[#001F54] transition-all duration-300 ${
-                      isActive ? "bg-white text-[#001F54]" : "text-white"
-                    }`
-                  }
-                >
-                  Sign up
-                </NavLink>
-              </li>
-            </ul>
-          )}
-
-          {/* Logo & Title */}
-          <div
-            className={`flex items-center space-x-3 ${
-              isLoggedIn ? "ml-auto" : "lg:ml-10"
-            }`}
-          >
-            <NavLink to="/">
-              <img
-                src={logo}
-                alt="Uni Shop Logo"
-                className="w-8 h-8 sm:w-16 sm:h-16 transition duration-300 hover:scale-110"
-              />
-            </NavLink>
-
-            <span
-              className="text-white font-bold text-lg sm:text-xl md:text-2xl"
-              style={{ fontFamily: "Inter" }}
-            >
-              Uni Shop
+  /* ─── SOCKET: admin library-request ──────────────────────────────── */
+  useEffect(() => {
+    if (userRole !== "admin" || !userId) return;
+    socket.emit("register", userId);
+    const listener = (library) => {
+      const name = library.name || library.username || "New Library";
+      const id = library._id || Date.now();
+      setAdminNotifications((prev) => [{ id, name }, ...prev]);
+      toast.info(
+        <div className="bg-[#001F54] rounded-lg shadow-lg overflow-hidden w-80">
+          <div className="flex items-center px-4 py-3 space-x-2">
+            <IoIosNotificationsOutline className="text-xl text-blue-300" />
+            <span className="font-medium text-blue-300">
+              New library registered:{" "}
+              <strong className="text-white">{name}</strong>
             </span>
           </div>
-
-          {/* Icons and Search Bar */}
-          <div className="ml-auto flex items-center space-x-3">
-            {/* Search Bar */}
-            <div
-              className={`hidden sm:flex items-center bg-white rounded-md px-2 ${
-                isLoggedIn ? "ml-4" : "ml-0"
-              }`}
+          <div className="h-1 bg-white/30">
+            <div className="h-full bg-white animate-toast-progress" />
+          </div>
+          <div className="px-4 py-3 border-t border-white/20 text-right">
+            <button
+              onClick={() => navigate("/adminedrawer/request")}
+              className="inline-block px-5 py-2 bg-white text-[#001F54] font-semibold rounded-full shadow-md hover:bg-gray-100 transition"
             >
-              <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-[180px] md:w-[250px] h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm md:text-base"
-              />
-            </div>
-
-            {/* Icons */}
-            <button type="button">
-              <img
-                src={fav}
-                alt="Favourite Icon"
-                className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
-              />
+              View Requests
             </button>
-            <div
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              ref={dropdownRef}
-              className="relative"
+          </div>
+        </div>,
+        {
+          autoClose: 4000,
+          hideProgressBar: true,
+          closeOnClick: false,
+          pauseOnHover: false,
+          draggable: false,
+          icon: false,
+          className: "bg-transparent p-0 shadow-none",
+          bodyClassName: "bg-transparent p-0",
+        }
+      );
+    };
+    socket.on("library-request", listener);
+    return () => socket.off("library-request", listener);
+  }, [userRole, userId, navigate]);
+
+  /* ─── SOCKET: library order-notification ─────────────────────────── */
+  useEffect(() => {
+    if (!isLibrary || !userId) return;
+    socket.emit("register", userId);
+    const listener = (payload) => {
+      const id = `${payload.orderId}-${Date.now()}`;
+      const title = `Order #${payload.orderId} from ${payload.customer_name}`;
+      setOrderNotifications((prev) => [{ id, title, ...payload }, ...prev]);
+      toast.info(
+        <div className="bg-[#001F54] rounded-lg shadow-lg overflow-hidden w-80">
+          <div className="flex items-center px-4 py-3 space-x-2">
+            <IoIosNotificationsOutline className="text-xl text-green-300" />
+            <span className="font-medium text-green-300">
+              New order received:{" "}
+              <strong className="text-white">#{payload.orderId}</strong>
+            </span>
+          </div>
+          <div className="h-1 bg-white/30">
+            <div className="h-full bg-white animate-toast-progress" />
+          </div>
+          <div className="px-4 py-3 border-t border-white/20 text-right">
+            <button
+              onClick={() => navigate("/minidrawer/orders")}
+              className="inline-block px-5 py-2 bg-white text-[#001F54] font-semibold rounded-full shadow-md hover:bg-gray-100 transition"
             >
-              <button type="button" onClick={toggleDropdown}>
-                <img
-                  src={hug}
-                  alt="User Icon"
-                  className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
+              View Orders
+            </button>
+          </div>
+        </div>,
+        {
+          autoClose: 4000,
+          hideProgressBar: true,
+          closeOnClick: false,
+          pauseOnHover: false,
+          draggable: false,
+          icon: false,
+          className: "bg-transparent p-0 shadow-none",
+          bodyClassName: "bg-transparent p-0",
+        }
+      );
+    };
+    socket.on("order-notification", listener);
+    return () => socket.off("order-notification", listener);
+  }, [isLibrary, userRole, userId, navigate]);
+
+  /* ─── SOCKET: student birthday alert ─────────────────────────────── */
+  useEffect(() => {
+    if (!isStudent || !userId) return;
+    socket.emit("register", userId);
+    const listener = (message) => {
+      Swal.fire({
+        title: "🎉 Happy Birthday!",
+        html: `
+          <div class="flex flex-col items-center">
+            <img src="https://cdn-icons-png.flaticon.com/512/3159/3159066.png"
+                 style="width:190px;margin-bottom:12px;border-radius:8px" />
+            <p class="text-[#001F54]">${message}</p>
+          </div>`,
+        width: 360,
+        background: "#fff",
+        confirmButtonColor: "#001F54",
+        confirmButtonText: "Thanks!",
+        showCloseButton: true,
+        padding: "1.5rem",
+      });
+    };
+    socket.on("birthday", listener);
+    return () => socket.off("birthday", listener);
+  }, [isStudent, userId]);
+
+  /* ─── Login/Logout ───────────────────────────────────────────────── */
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
+  /* ─── Responsive helper ─────────────────────────────────────────── */
+  const [isSmall, setIsSmall] = useState(window.innerWidth <= 1024);
+  useEffect(() => {
+    const onResize = () => setIsSmall(window.innerWidth <= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  /* ─── Sidebar & dropdowns ──────────────────────────────────────── */
+  const [sideOpen, setSideOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const sideRef = useRef(null);
+  const avatarRef = useRef(null);
+
+  useEffect(() => {
+    document.body.style.overflow = sideOpen ? "hidden" : "auto";
+    return () => (document.body.style.overflow = "auto");
+  }, [sideOpen]);
+
+  useEffect(() => {
+    const clickOutside = (e) => {
+      if (sideRef.current && !sideRef.current.contains(e.target))
+        setSideOpen(false);
+      if (avatarRef.current && !avatarRef.current.contains(e.target))
+        setAvatarOpen(false);
+    };
+    if (sideOpen || avatarOpen)
+      document.addEventListener("mousedown", clickOutside);
+    return () => document.removeEventListener("mousedown", clickOutside);
+  }, [sideOpen, avatarOpen]);
+
+  /* ─── Render ───────────────────────────────────────────────────── */
+  return (
+    <div className="overflow-x-hidden">
+      <nav className="w-full bg-[#001F54] overflow-visible relative">
+        <div className="mx-auto max-w-[1440px] h-[88px] flex items-center px-4 sm:px-8">
+          {/* Logo */}
+          <NavLink to="/" className="flex items-center overflow-hidden">
+            <img
+              src={logo}
+              alt="Uni Shop logo"
+              className="w-20 m-10 sm:m-0 h-15 sm:w-40 sm:h-22 transition duration-300 hover:scale-110"
+            />
+          </NavLink>
+
+          {/* Desktop search */}
+          {!isSmall && (
+            <div className="flex-grow flex justify-center mx-4 relative">
+              <div className="flex items-center bg-white rounded-md px-2 w-full max-w-[600px]">
+                <img src={searchIcon} alt="Search" className="w-5 h-5" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={term}
+                  onChange={onChange}
+                  onKeyDown={onKeyDown}
+                  placeholder="Search"
+                  className="w-full h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm md:text-base"
                 />
+              </div>
+              {suggestions.length > 0 && (
+                <ul
+                  ref={suggestBoxRef}
+                  className="absolute top-10 w-full max-w-[600px] bg-white rounded shadow-lg z-[200]"
+                >
+                  {suggestions.map((name, i) => (
+                    <li
+                      key={name}
+                      onMouseDown={() => commitSearch(name)}
+                      className={`px-4 py-2 cursor-pointer ${
+                        i === index ? "bg-gray-100" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      {name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Right-side icons (notifications, wishlist, cart, avatar…) */}
+          <div className="flex items-center space-x-3 ml-auto overflow-visible">
+            {/* Admin notifications */}
+            {isAuthenticated && isAdmin && (
+              <div ref={adminNotifRef} className="relative">
+                <button
+                  onClick={() => setAdminNotifDropdownOpen((o) => !o)}
+                  className="cursor-pointer relative"
+                >
+                  <IoIosNotificationsOutline className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  {adminNotifications.length > 0 && (
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
+                  )}
+                </button>
+
+                {adminNotifDropdownOpen && (
+                  <div className="fixed right-8 top-[88px] w-64 bg-[#001F54] text-white shadow-lg rounded max-h-80 overflow-y-auto z-[120]">
+                    {adminNotifications.length > 0 ? (
+                      adminNotifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className="px-4 py-2 hover:bg-white/10 cursor-pointer"
+                        >
+                          {n.name}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-2 text-white/50">
+                        No notifications
+                      </div>
+                    )}
+
+                    <div className="border-t border-white/20 p-4">
+                      <button
+                        onClick={() => navigate("/adminedrawer/request")}
+                        className="w-full px-6 py-2 bg-white text-[#001F54] font-bold rounded-full shadow-lg hover:bg-gray-100 transition-all duration-200"
+                      >
+                        View All Requests
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Library order notifications */}
+            {isAuthenticated && isLibrary && (
+              <div ref={orderNotifRef} className="relative">
+                <button
+                  onClick={() => setOrderNotifDropdownOpen((o) => !o)}
+                  className="cursor-pointer relative"
+                >
+                  <IoIosNotificationsOutline className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  {orderNotifications.length > 0 && (
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full" />
+                  )}
+                </button>
+
+                {orderNotifDropdownOpen && (
+                  <div className="fixed right-8 top-[88px] w-72 bg-[#001F54] text-white shadow-lg rounded max-h-80 overflow-y-auto z-[120]">
+                    {orderNotifications.length > 0 ? (
+                      orderNotifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className="px-4 py-2 hover:bg-white/10 cursor-pointer"
+                        >
+                          {n.title}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-2 text-white/50">
+                        No notifications
+                      </div>
+                    )}
+
+                    <div className="border-t border-white/20 p-4">
+                      <button
+                        onClick={() => navigate("/minidrawer/orders")}
+                        className="w-full px-6 py-2 bg-white text-[#001F54] font-bold rounded-full shadow-lg hover:bg-gray-100 transition-all duration-200"
+                      >
+                        View Orders
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Wishlist & Cart for students / guests */}
+            {(!isAuthenticated || isStudent) && (
+              <>
+                <div className="relative">
+                  <button onClick={() => navigate("/wishlist")}>
+                    <img
+                      src={fav}
+                      alt="Favourite"
+                      className="w-6 h-6 sm:w-8 sm:h-8"
+                    />
+                  </button>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <button onClick={() => navigate("/cart")}>
+                    <img
+                      src={cart}
+                      alt="Cart"
+                      className="w-6 h-6 sm:w-8 sm:h-8"
+                    />
+                  </button>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Avatar dropdown */}
+            <div ref={avatarRef} className="relative">
+              <button
+                onClick={() => setAvatarOpen((o) => !o)}
+                className="cursor-pointer"
+              >
+                <img src={hug} alt="User" className="w-6 h-6 sm:w-8 sm:h-8" />
               </button>
 
-              {/* Dropdown Menu*/}
-              {isDropdownOpen && (
+              {avatarOpen && (
                 <div
                   className={`fixed w-[299px] ${
-                    isMobile ? "top-[88px] right-4" : "right-0 "
-                  } bg-[#001F54] shadow-lg rounded-md z-50`}
-                  style={{ boxShadow: "0px 4px 4px 0px #00000040" }}
+                    isSmall ? "top-[88px] right-4" : "right-4"
+                  } bg-[#001F54] shadow-lg rounded-md z-[120]`}
+                  style={{ boxShadow: "0 4px 4px 0 #00000040" }}
                 >
                   <div className="p-4">
-                    {isLoggedIn ? (
+                    {isAuthenticated ? (
                       <>
-                        <NavLink
-                          to="/profile"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <span className="text-white">Profile</span>
-                          <img
-                            src={profileIcon}
-                            alt="Profile Icon"
-                            className="w-6 h-6"
-                          />
-                        </NavLink>
+                        {isLibrary && (
+                          <NavLink
+                            to="/minidrawer/information"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Profile</span>
+                            <img src={profileIcon} alt="" className="w-6 h-6" />
+                          </NavLink>
+                        )}
                         <NavLink
                           to="/"
                           className="flex items-center justify-between mb-4"
-                          onClick={() => setIsDropdownOpen(false)}
+                          onClick={() => setAvatarOpen(false)}
                         >
                           <span className="text-white">Home</span>
-                          <img
-                            src={homeIcon}
-                            alt="Home Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={homeIcon} alt="" className="w-6 h-6" />
                         </NavLink>
-                        <NavLink
-                          to="/privacy"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <span className="text-white">Privacy</span>
-                          <img
-                            src={privacyIcon}
-                            alt="Privacy Icon"
-                            className="w-6 h-6"
-                          />
-                        </NavLink>
-                        <NavLink
-                          to="/help"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <span className="text-white">Help</span>
-                          <img
-                            src={helpIcon}
-                            alt="Help Icon"
-                            className="w-6 h-6"
-                          />
-                        </NavLink>
-                        <NavLink
-                          to="/MiniDrawer"
-                          className="flex items-center justify-between mb-4"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <span className="text-white">Dashboard</span>
-                          <MdDashboard className="w-6 h-6 text-white" />
-                        </NavLink>
-
-                        <div className="flex items-center justify-between mb-4 relative">
-                          <span className="text-white">Language</span>
-                          <div className="flex items-center">
-                            <img
-                              src={languageIcon}
-                              alt="Language Icon"
-                              className="w-6 h-6"
-                            />
-                            <button
-                              onClick={toggleLanguageDropdown}
-                              className="ml-2 focus:outline-none text-white"
-                            >
-                              ▼
-                            </button>
-                          </div>
-                          {languageDropdownOpen && (
-                            <div className="absolute top-8 right-0 bg-[#001F54] shadow-lg rounded-md p-2">
-                              <button
-                                onClick={() => handleLanguageSelect("Arabic")}
-                                className="text-white hover:bg-[#003366] p-2 w-full text-left"
-                              >
-                                Arabic
-                              </button>
-                              <button
-                                onClick={() => handleLanguageSelect("English")}
-                                className="text-white hover:bg-[#003366] p-2 w-full text-left"
-                              >
-                                English
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                        {userRole === "admin" && (
+                          <NavLink
+                            to="/adminedrawer/adminDashboard"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Dashboard</span>
+                            <MdDashboard className="w-6 h-6 text-white" />
+                          </NavLink>
+                        )}
+                        {isLibrary && (
+                          <NavLink
+                            to="/MiniDrawer/home"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Dashboard</span>
+                            <MdDashboard className="w-6 h-6 text-white" />
+                          </NavLink>
+                        )}
+                        {isStudent && (
+                          <NavLink
+                            to="/productshome"
+                            className="flex items-center justify-between mb-4"
+                            onClick={() => setAvatarOpen(false)}
+                          >
+                            <span className="text-white">Products</span>
+                            <MdDashboard className="w-6 h-6 text-white" />
+                          </NavLink>
+                        )}
                         <button
-                          className="flex items-center justify-between mb-4 cursor-pointer w-full"
                           onClick={handleLogout}
+                          className="flex items-center justify-between mb-4 w-full"
                         >
                           <span className="text-white">Logout</span>
                           <img
                             src={logoutIcon}
-                            alt="Logout Icon"
+                            alt=""
                             className="w-6 h-6"
                           />
                         </button>
@@ -386,26 +578,18 @@ function Navbar() {
                         <NavLink
                           to="/login"
                           className="flex items-center justify-between mb-4"
-                          onClick={() => setIsDropdownOpen(false)}
+                          onClick={() => setAvatarOpen(false)}
                         >
                           <span className="text-white">Login</span>
-                          <img
-                            src={profileIcon}
-                            alt="Login Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={profileIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                         <NavLink
                           to="/signup"
-                          className="flex items-center justify-between"
-                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center justify-between mb-4"
+                          onClick={() => setAvatarOpen(false)}
                         >
                           <span className="text-white">Signup</span>
-                          <img
-                            src={profileIcon}
-                            alt="Signup Icon"
-                            className="w-6 h-6"
-                          />
+                          <img src={profileIcon} alt="" className="w-6 h-6" />
                         </NavLink>
                       </>
                     )}
@@ -413,58 +597,72 @@ function Navbar() {
                 </div>
               )}
             </div>
-
-            <button type="button">
-              <img
-                src={cart}
-                alt="Cart Icon"
-                className="w-6 h-6 sm:w-8 sm:h-8 cursor-pointer"
-              />
-            </button>
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        {isMobile && (
-          <div className="w-full px-4 pb-2 sm:hidden">
+        {/* Mobile search */}
+        {isSmall && (
+          <div className="w-full px-4 pb-2 relative">
             <div className="flex items-center bg-white rounded-md px-2">
-              <img src={searchIcon} alt="Search Icon" className="w-5 h-5" />
+              <img src={searchIcon} alt="Search" className="w-5 h-5" />
               <input
+                ref={searchRef}
                 type="text"
+                value={term}
+                onChange={onChange}
+                onKeyDown={onKeyDown}
                 placeholder="Search"
                 className="w-full h-[40px] bg-transparent border-none outline-none text-[#001F54] text-sm"
               />
             </div>
+            {suggestions.length > 0 && (
+              <ul
+                ref={suggestBoxRef}
+                className="absolute w-full bg-white rounded shadow-lg z-[200]"
+              >
+                {suggestions.map((name, i) => (
+                  <li
+                    key={name}
+                    onMouseDown={() => commitSearch(name)}
+                    className={`px-4 py-2 cursor-pointer ${
+                      i === index ? "bg-gray-100" : "hover:bg-gray-50"
+                    }`}
+                  >
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
-        {/* Overlay */}
-        {isMenuOpen && (
+        {/* Overlay when sidebar open */}
+        {sideOpen && (
           <div
-            className="fixed top-0 left-0 w-full h-full bg-[#D9D9D980] bg-opacity-50 z-40"
-            onClick={closeMenu}
+            className="fixed top-0 left-0 w-full h-full bg-[#D9D9D980] z-[90]"
+            onClick={() => setSideOpen(false)}
           />
         )}
 
         {/* Sidebar */}
         <div
-          ref={sidebarRef}
-          className={`fixed top-0 left-0 w-64 h-screen bg-[#001F54] z-50 transform transition-transform duration-300 ease-in-out ${
-            isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          ref={sideRef}
+          className={`fixed top-0 left-0 w-64 h-screen bg-[#001F54] z-[110] transform transition-transform duration-300 ${
+            sideOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {/* Sidebar Content */}
-          <div className="p-4 " style={{ fontFamily: "Hedvig Letters Sans" }}>
-            {/* Hamburger Icon and Categories Text */}
+          <div className="p-4" style={{ fontFamily: "Hedvig Letters Sans" }}>
             <div className="flex items-center mb-6">
               <button
-                type="button"
-                onClick={toggleMenu}
-                className="space-y-1 focus:outline-none cursor-pointer"
+                onClick={() => setSideOpen(false)}
+                className="space-y-1"
               >
-                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
-                <div className="w-[28px] h-[5px] bg-white rounded-md"></div>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-[28px] h-[5px] bg-white rounded-md"
+                  />
+                ))}
               </button>
               <span
                 className="text-white ml-4"
@@ -473,19 +671,15 @@ function Navbar() {
                   fontWeight: 700,
                   fontSize: "32px",
                   lineHeight: "38.73px",
-                  letterSpacing: "0%",
                 }}
               >
                 Categories
               </span>
             </div>
-
-            {isMobile && <></>}
+            {/* Add sidebar links … */}
           </div>
         </div>
       </nav>
     </div>
   );
 }
-
-export default Navbar;

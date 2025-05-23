@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   Mail,
@@ -12,6 +12,7 @@ import {
   BookOpen,
   AlertCircle,
 } from "lucide-react";
+import { useAuth } from "../../../../context/AuthContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -25,7 +26,10 @@ function LibraryLogin() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
-  // const navigate = useNavigate();
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -35,7 +39,6 @@ function LibraryLogin() {
     }));
     setError(null);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -55,7 +58,19 @@ function LibraryLogin() {
 
       console.log("Login successful:", response.data);
       setUserData(response.data.data);
+
+      // Store user data temporarily but don't update authentication state yet
+      const userData = {
+        id: response.data.data.id,
+        role: response.data.data.role,
+        ...response.data.data,
+      };
+
+      // Update authentication state immediately but stay on this page with success overlay
+      login(userData);
       setShowSuccess(true);
+
+      // No automatic redirect - user must click the "Go To Dashboard" button
     } catch (error) {
       if (error.response && error.response.status === 403) {
         setError(
@@ -265,9 +280,9 @@ function LibraryLogin() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                       onClick={() => {
-                        setTimeout(() => {
-                          window.location.href = "/MiniDrawer"; // Navigate to /dashboard
-                        }, 100);
+                        const from =
+                          location.state?.from?.pathname || "/minidrawer/home";
+                        navigate(from, { replace: true });
                       }}
                     >
                       Go To Dashboard

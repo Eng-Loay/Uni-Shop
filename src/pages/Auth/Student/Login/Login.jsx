@@ -1,6 +1,8 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import {
   Mail,
   Lock,
@@ -9,33 +11,72 @@ import {
   BookOpen,
   LogIn,
   GraduationCap,
+  AlertCircle,
 } from "lucide-react";
+import { useAuth } from "../../../../context/AuthContext";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 function Login() {
+  /* ─────────── state ─────────── */
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    role: "student", // Default role
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const [userRole, setUserRole] = useState("");
 
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  /* ─────────── handlers ─────────── */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setShowSuccess(true);
+    setError(null);
+    setShowSuccess(false);
+
+    try {
+      const { data, status } = await axios.post(
+        `${API_BASE_URL}api/v1/auth/student/login`,
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (status === 200) {
+        const role = (data.data?.role || "").toLowerCase();
+        const id = data.data?.id;
+
+        // Use the auth context to handle login
+        login({
+          id,
+          role,
+          ...data.data,
+        });
+
+        setUserRole(role);
+        setShowSuccess(true);
+
+        // No automatic redirect - user must click the "Continue to Dashboard" button
+      }
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Login failed. Please check your credentials and try again.";
+      setError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const successVariants = {
@@ -78,6 +119,19 @@ function Login() {
                 <h2 className="text-3xl font-bold text-white mb-8">
                   Welcome back Student! 👋
                 </h2>
+
+                {/* Error Message */}
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center space-x-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 mb-4"
+                  >
+                    <AlertCircle className="w-5 h-5" />
+                    <span>{error}</span>
+                  </motion.div>
+                )}
                 <div className="space-y-6">
                   {/* Email Field */}
                   <div className="relative">
@@ -211,14 +265,34 @@ function Login() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
                     >
-                      Successfully signed in as {formData.role}
+                      Successfully signed in as {formData.email}
                     </motion.p>
                     <motion.button
                       className="px-8 py-3 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
-                      onClick={() => window.location.reload()}
+                      onClick={() => {
+                        // If there's a specific path the user was trying to access, go there
+                        if (location.state?.from?.pathname) {
+                          navigate(location.state.from.pathname, {
+                            replace: true,
+                          });
+                        } else {
+                          // Otherwise, route based on user role - only handling student and admin
+                          const role = localStorage.getItem("role");
+                          if (role === "student") {
+                            navigate("/productshome", { replace: true });
+                          } else if (role === "admin") {
+                            navigate("/adminedrawer/adminDashboard", {
+                              replace: true,
+                            });
+                          } else {
+                            // Default fallback for any other role
+                            // navigate("/", { replace: true });
+                          }
+                        }
+                      }}
                     >
                       Continue to Dashboard
                     </motion.button>

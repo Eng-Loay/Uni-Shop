@@ -23,6 +23,7 @@ function ForgotPassword() {
   const [showPassword, setShowPassword] = useState(false); // Toggle password visibility
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle confirm password visibility
   const navigate = useNavigate();
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -65,48 +66,147 @@ function ForgotPassword() {
     return true;
   };
 
+  // Handle "Forgot Password" - Send OTP to email
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}api/v1/auth/student/forgot-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
 
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    setTimeout(() => {
-      setStep(2); // Move to OTP verification step
-      setShowSuccess(false);
-    }, 3000);
+      if (!response.ok) {
+        throw new Error("Failed to send reset link");
+      }
+
+      setIsSubmitting(false);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setStep(2); // Move to OTP verification step
+        setShowSuccess(false);
+      }, 3000);
+    } catch (error) {
+      setIsSubmitting(false);
+      setErrors({ email: error.message });
+    }
   };
 
+  // Handle OTP Verification
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     if (!validateOtp()) return; // Validate OTP before proceeding
 
     setIsSubmitting(true);
 
-    // Simulate OTP verification
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}api/v1/auth/student/verify-otp`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Include credentials to ensure the session cookie is stored
+          credentials: "include",
+          body: JSON.stringify({ email, otp }),
+        }
+      );
 
-    setIsSubmitting(false);
-    setStep(3); // Move to password update step
+      if (!response.ok) {
+        throw new Error("Failed to verify OTP");
+      }
+
+      // The backend returns the verified user data,
+      // but the session is stored in a cookie automatically.
+      // const responseData = await response.json();
+      // console.log("OTP Verification Response:", responseData);
+
+      // If you need to persist any user info, you can store it locally.
+      // For example:
+      // localStorage.setItem("user", JSON.stringify(responseData.data.user));
+
+      setIsSubmitting(false);
+      setStep(3); // Move to password update step
+    } catch (error) {
+      setIsSubmitting(false);
+      setErrors({ otp: error.message });
+    }
   };
 
+  // Handle Password Update
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
     if (!validatePassword()) return; // Validate password before proceeding
 
     setIsSubmitting(true);
 
-    // Simulate password update
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}api/v1/auth/student/update-password`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Credentials included to send the session cookie for authentication
+          credentials: "include",
+          body: JSON.stringify({ password, passwordConfirm: confirmPassword }),
+        }
+      );
+      // console.log("Update Password Response:", response);
 
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    setTimeout(() => {
-      navigate("/login"); // Redirect to login page after successful password update
-    }, 3000);
+      if (!response.ok) {
+        throw new Error("Failed to update password");
+      }
+
+      setIsSubmitting(false);
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate("/login"); // Redirect to login page after success
+      }, 3000);
+    } catch (error) {
+      setIsSubmitting(false);
+      setErrors({ password: error.message });
+    }
+  };
+
+  // Handle Resend OTP
+  const handleResendOtp = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}api/v1/auth/library/forgot-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to resend OTP");
+      }
+
+      setIsSubmitting(false);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+    } catch (error) {
+      setIsSubmitting(false);
+      setErrors({ otp: error.message });
+    }
   };
 
   const successVariants = {
@@ -138,7 +238,7 @@ function ForgotPassword() {
       <div className="w-full max-w-5xl bg-gray-900/50 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
         <div className="flex flex-col lg:flex-row">
           {/* Form Section */}
-          <div className="lg:w-3/5 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 md:p-16 relative">
+          <div className="lg:w-3/5 bg[#000C21] p-8 md:p-16 relative">
             {step === 1 && (
               <>
                 <div className="mb-12">
@@ -178,7 +278,7 @@ function ForgotPassword() {
                   {/* Submit Button */}
                   <motion.button
                     type="submit"
-                    className={`w-full h-14 bg-[#001F54]hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                    className={`w-full h-14 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                       isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                     }`}
                     whileHover={{ scale: 1.02 }}
@@ -214,7 +314,8 @@ function ForgotPassword() {
                 <div className="mb-12">
                   <h1 className="text-3xl font-bold text-white">Verify OTP</h1>
                   <p className="text-gray-400 mt-2">
-                    Please enter the 6-digit OTP sent to your email.
+                    Please enter the 6-digit OTP sent to your email. The OTP is
+                    valid for 10 minutes.
                   </p>
                 </div>
 
@@ -252,7 +353,7 @@ function ForgotPassword() {
                   {/* Submit Button */}
                   <motion.button
                     type="submit"
-                    className={`w-full h-14 bg-[#001F54]hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                    className={`w-full h-14 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                       isSubmitting ? "opacity-75 cursor-not-allowed" : ""
                     }`}
                     whileHover={{ scale: 1.02 }}
@@ -268,6 +369,19 @@ function ForgotPassword() {
                       </>
                     )}
                   </motion.button>
+
+                  {/* Resend OTP Button */}
+                  <p className="text-center text-gray-400">
+                    Didn&apos;t receive the OTP?{" "}
+                    <button
+                      type="button"
+                      className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200 cursor-pointer"
+                      onClick={handleResendOtp}
+                      disabled={isSubmitting}
+                    >
+                      Resend OTP
+                    </button>
+                  </p>
                 </form>
               </>
             )}
@@ -413,8 +527,8 @@ function ForgotPassword() {
                       {step === 1
                         ? "Reset Link Sent!"
                         : step === 2
-                        ? "OTP Verified!"
-                        : "Password Updated!"}
+                          ? "OTP Verified!"
+                          : "Password Updated!"}
                     </motion.h3>
                     <motion.p
                       className="text-gray-400 mb-8"
@@ -425,8 +539,8 @@ function ForgotPassword() {
                       {step === 1
                         ? `We've emailed a password reset link to ${email}`
                         : step === 2
-                        ? "You can now update your password."
-                        : "Your password has been updated successfully."}
+                          ? "You can now update your password."
+                          : "Your password has been updated successfully."}
                     </motion.p>
                     <motion.button
                       className="px-8 py-3 bg-[#001F54] hover:bg-indigo-600 text-white rounded-xl text-sm font-semibold transition-all duration-200"

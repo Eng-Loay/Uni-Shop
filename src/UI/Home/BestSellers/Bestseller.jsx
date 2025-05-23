@@ -1,105 +1,74 @@
-import arrow from "../../../assets/Home/BestSellers/arrow.svg";
-import pencil from "../../../assets/Home/BestSellers/pencils.svg";
-import scope from "../../../assets/Home/BestSellers/scope.svg";
-import markers from "../../../assets/Home/BestSellers/markers.svg";
-import flask from "../../../assets/Home/BestSellers/flask.svg";
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import Details from "./Detailbut";
+import arrow from "../../../assets/Home/BestSellers/arrow.svg";
 
 function Bestseller() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchBestSellers = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}api/v1/product/best_seller`
+        );
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to fetch best sellers:", err);
+      }
+    };
+
+    fetchBestSellers();
+  }, []);
+
   return (
     <div className="m-0 p-0 flex flex-col items-start w-full mb-40">
-      {/* Header Section */}
-      <div className="flex items-center pl-[5%] lg:pl-[300px] mt-5">
-        <p
-          className="text-[#3E3B3B] text-[20px] lg:text-[28px] font-sans p-5 m-0"
-          style={{ fontFamily: "Inter" }}
-        >
+      {/* Header */}
+      <div className="flex items-center pl-[5%] mt-5">
+        <p className="text-[#3E3B3B] text-[20px] lg:text-[28px] font-sans p-5 m-0">
           BEST SELLER PRODUCTS
         </p>
         <img src={arrow} alt="arrow icon" className="w-6 h-6 mr-2.5" />
       </div>
 
-      {/* Product Grid */}
-      <div className="mt-20 px-20 ml-4 lg:ml-[200px] flex flex-row flex-wrap justify-center lg:justify-start gap-7">
-        {/* First Image and Text */}
-        <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
-          <img src={pencil} alt="Example Image" className="w-3/4 h-auto" />
-          <p
-            className="text-[#3E3B3B] text-[20px] mt-4 text-center"
-            style={{ fontFamily: "Inter", fontWeight: 400 }}
+      {/* Products Grid */}
+      <div className="mt-20 px-10 mx-auto flex flex-row flex-wrap justify-center md:justify-start gap-7">
+        {products.map((product) => (
+          <div
+            key={product._id}
+            className="flex flex-col items-center w-[230px]"
           >
-            Feber Castell Pencils
-          </p>
-          <p
-            className="text-[#3E3B3B] text-[18px] font-bold mt-2"
-            style={{ fontFamily: "Inter" }}
-          >
-            90 LE
-          </p>
-          <div style={{ marginTop: "10px" }}>
-            <Details />
-          </div>
-        </div>
+            {/* Image */}
+            <div className="w-full h-[180px] flex items-center justify-center">
+              <img
+                src={product.product_pictures?.[0]?.secure_url}
+                alt={product.name}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
 
-        {/* Second Image and Text */}
-        <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
-          <img src={scope} alt="New Image" className="w-3/4 h-auto" />
-          <p
-            className="text-[#3E3B3B] text-[20px] mt-4 text-center"
-            style={{ fontFamily: "Inter", fontWeight: 400 }}
-          >
-            Stethoscope
-          </p>
-          <p
-            className="text-[#3E3B3B] text-[18px] font-bold mt-2"
-            style={{ fontFamily: "Inter" }}
-          >
-            110 LE
-          </p>
-          <div style={{ marginTop: "10px" }}>
-            <Details />
-          </div>
-        </div>
+            {/* Name */}
+            <p
+              className="text-[#3E3B3B] text-[16px] mt-4 text-center leading-snug
+                         line-clamp-2 min-h-[48px]"
+            >
+              {product.name}
+            </p>
 
-        {/* Third Image and Text */}
-        <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
-          <img src={markers} alt="Third Image" className="w-3/4 h-auto" />
-          <p
-            className="text-[#3E3B3B] text-[20px]  mt-4 text-center"
-            style={{ fontFamily: "Inter", fontWeight: 400 }}
-          >
-            Acrylic Painters Markers
-          </p>
-          <p
-            className="text-[#3E3B3B] text-[18px] font-bold mt-2"
-            style={{ fontFamily: "Inter" }}
-          >
-            270 LE
-          </p>
-          <div style={{ marginTop: "10px" }}>
-            <Details />
-          </div>
-        </div>
+            {/* Price */}
+            <p className="text-[#3E3B3B] text-[18px] font-bold mt-1">
+              {Math.round(product.price)} LE
+            </p>
 
-        {/* Fourth Image and Text */}
-        <div className="flex flex-col items-center w-full sm:w-[45%] lg:w-auto">
-          <img src={flask} alt="Fourth Image" className="w-3/4 h-auto" />
-          <p
-            className="text-[#3E3B3B] text-[20px] font-normal mt-4 text-center"
-            style={{ fontFamily: "Inter", fontWeight: 400 }}
-          >
-            Glass Flask
-          </p>
-          <p
-            className="text-[#3E3B3B] text-[18px] font-bold mt-2"
-            style={{ fontFamily: "Inter" }}
-          >
-            130 LE
-          </p>
-          <div style={{ marginTop: "10px" }}>
-            <Details />
+            {/* Details button → navigates to product details */}
+            <div className="mt-2">
+              <NavLink to={`/productdetails/${product._id}`}>
+                <Details />
+              </NavLink>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

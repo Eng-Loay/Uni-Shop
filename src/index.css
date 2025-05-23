@@ -1,1 +1,28 @@
 @import "tailwindcss";
+@keyframes toast-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Utility to apply that keyframe */
+.animate-toast-progress {
+  animation: toast-progress 4s linear forwards;
+}
+.Toastify__toast,
+.Toastify__toast-body,
+.Toastify__toast-theme--light {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+button {
+  cursor: pointer;
+}
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
