@@ -23,6 +23,9 @@ function ProductCard({ product }) {
   const raw = import.meta.env.VITE_API_URL || "";
   const API_BASE_URL = raw.endsWith("/") ? raw : `${raw}/`;
 
+  // limit name to first two words
+  const displayName = product.name.split(" ").slice(0, 2).join(" ");
+
   // ──────── Handlers ─────────
   const increment = () => setCount((prev) => prev + 1);
   const decrement = () => setCount((prev) => (prev > 1 ? prev - 1 : 1));
@@ -92,7 +95,7 @@ function ProductCard({ product }) {
 
         <div className="flex justify-between items-center py-2">
           <h3 className="text-main font-extrabold line-clamp-2">
-            {product.name}
+            {displayName}
           </h3>
           <span className="flex text-yellow-500">
             {product.average_rating
@@ -105,7 +108,7 @@ function ProductCard({ product }) {
 
         <div className="flex justify-between items-center py-2">
           <span className="font-bold text-main">
-            {product.price.toFixed(3)} EGP
+            {product.price.toFixed(2)} EGP
           </span>
           <div className="px-2 flex items-center">
             <button
@@ -153,7 +156,7 @@ function ProductCard({ product }) {
               <span className="font-semibold">{product.name}</span>
               <span className="text-sm text-gray-600">Quantity: {count}</span>
               <span className="text-sm text-gray-600">
-                Total: {(product.price * count).toFixed(3)} EGP
+                Total: {(product.price * count).toFixed(2)} EGP
               </span>
             </div>
           </div>
