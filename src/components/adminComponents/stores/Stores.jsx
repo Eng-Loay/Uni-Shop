@@ -1,10 +1,9 @@
-// src/components/Stores.jsx
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -15,17 +14,16 @@ const api = axios.create({
 });
 
 export default function Stores() {
-  // ─── breakpoints ────────────────────────────────────────────────
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down("sm"));
   const isSm = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const isMd = useMediaQuery(theme.breakpoints.between("md", "lg"));
 
-  // ─── pagination model (dynamic pageSize) ────────────────────────
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: isXs ? 5 : isSm ? 7 : isMd ? 10 : 15,
   });
+
   useEffect(() => {
     setPaginationModel((prev) => ({
       ...prev,
@@ -33,11 +31,9 @@ export default function Stores() {
     }));
   }, [isXs, isSm, isMd]);
 
-  // ─── state ──────────────────────────────────────────────────────
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ─── fetch approved libraries ───────────────────────────────────
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -67,7 +63,6 @@ export default function Stores() {
     fetchData();
   }, []);
 
-  // ─── delete handler ─────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
       const result = await Swal.fire({
@@ -93,56 +88,62 @@ export default function Stores() {
     }
   };
 
-  // ─── columns ────────────────────────────────────────────────────
-  const columns = [
-    {
-      field: "logo",
-      headerName: "Logo",
-      flex: 1,
-      headerAlign: "center",
-      align: "center",
-      renderCell: (params) => (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            height: "100%",
-          }}
-        >
+  const columns = useMemo(() => {
+    const base = [
+      {
+        field: "logo",
+        headerName: "Logo",
+        flex: 1,
+        headerAlign: "center",
+        align: "center",
+        renderCell: (params) => (
           <Box
-            component="img"
-            src={params.row.logo}
-            alt="Library Logo"
             sx={{
-              width: 60,
-              height: 60,
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: "1px solid #210876",
-              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              height: "100%",
             }}
-          />
-        </Box>
-      ),
-    },
-    {
-      field: "username",
-      headerName: "Username",
-      flex: 1,
-      align: "left",
-      headerAlign: "left",
-    },
-  ];
+          >
+            <Box
+              component="img"
+              src={params.row.logo}
+              alt="Library Logo"
+              sx={{
+                width: 60,
+                height: 60,
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "1px solid #210876",
+                cursor: "pointer",
+              }}
+            />
+          </Box>
+        ),
+      },
+    ];
+
+    if (!isXs) {
+      base.push({
+        field: "username",
+        headerName: "Username",
+        flex: 1,
+        align: "left",
+        headerAlign: "left",
+      });
+    }
+
+    return base;
+  }, [isXs]);
 
   const actionColumn = [
     {
       field: "action",
       headerName: "Action",
-      flex: 2,
-      headerAlign: "right",
-      align: "right",
+      flex: 1,
+      headerAlign: "center",
+      align: "center",
       sortable: false,
       renderCell: (params) => (
         <Box
@@ -156,16 +157,18 @@ export default function Stores() {
           <Box
             onClick={() => handleDelete(params.row.id)}
             sx={{
-              px: isXs ? 1 : 2,
-              py: isXs ? 0.5 : 1,
-              borderRadius: 1,
+              px: isXs ? 1 : 1.5,
+              py: isXs ? 0.25 : 0.5,
+              fontSize: isXs ? "0.7rem" : "0.8rem",
+              borderRadius: "4px",
               color: "crimson",
               border: "1px solid crimson",
               cursor: "pointer",
-              typography: isXs ? "caption" : "body2",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              lineHeight: 1,
+              minHeight: 24,
             }}
           >
             Delete
@@ -175,41 +178,41 @@ export default function Stores() {
     },
   ];
 
-  // ─── render ─────────────────────────────────────────────────────
   return (
     <Box
       sx={{
-        width: "100%",
-        py: { xs: 2, sm: 4 },
-        px: { xs: 1, sm: 2 },
+        height: "100vh",
+        overflow: "hidden",
         display: "flex",
-        justifyContent: "center",
+        flexDirection: "column",
+        px: { xs: 1, sm: 2 },
+        py: { xs: 2, sm: 2 },
+        bgcolor: "#f9f9f9",
       }}
     >
       <Paper
         elevation={3}
         sx={{
-          width: {
-            xs: "100%", // full width on mobile
-            sm: "90%", // 90% on small
-            md: "80%", // 80% on medium
-            lg: "60%", // 60% on large
-            xl: "50%", // 50% on extra-large
-          },
+          flexGrow: 1, 
+          display: "flex",
+          flexDirection: "column",
+          width: "clamp(320px, 95%, 1200px)",
+          mx: "auto",
           p: { xs: 1, sm: 2 },
         }}
       >
         <DataGrid
           rows={data}
           columns={columns.concat(actionColumn)}
-          autoHeight
           pagination
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
           pageSizeOptions={[5, 7, 10, 15]}
           rowHeight={isXs ? 100 : 120}
           loading={loading}
+          disableRowSelectionOnClick
           sx={{
+            flexGrow: 1, 
             border: 0,
             "& .MuiDataGrid-row": {
               boxShadow: 1,
@@ -219,6 +222,12 @@ export default function Stores() {
             },
             "& .MuiDataGrid-footerContainer": {
               justifyContent: "center",
+              mt: 2,
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "#fafafa",
+              fontWeight: "bold",
+              textAlign: "center",
             },
           }}
         />
