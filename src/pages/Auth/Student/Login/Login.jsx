@@ -51,7 +51,7 @@ function Login() {
           withCredentials: true,
         }
       );
-
+      console.log(data);
       if (status === 200) {
         const role = (data.data?.role || "").toLowerCase();
         const id = data.data?.id;

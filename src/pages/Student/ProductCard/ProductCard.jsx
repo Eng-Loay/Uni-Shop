@@ -23,6 +23,9 @@ function ProductCard({ product }) {
   const raw = import.meta.env.VITE_API_URL || "";
   const API_BASE_URL = raw.endsWith("/") ? raw : `${raw}/`;
 
+  // limit name to first two words
+  const displayName = product.name.split(" ").slice(0, 2).join(" ");
+
   // ──────── Handlers ─────────
   const increment = () => setCount((prev) => prev + 1);
   const decrement = () => setCount((prev) => (prev > 1 ? prev - 1 : 1));
@@ -43,10 +46,6 @@ function ProductCard({ product }) {
   };
 
   const handleWishlistClick = async () => {
-    if (!product || !product._id) {
-      console.error("Invalid product data");
-      return;
-    }
     try {
       await axios.patch(
         `${API_BASE_URL}api/v1/product/${product._id}/wishlist`,
@@ -65,7 +64,10 @@ function ProductCard({ product }) {
 
   // ──────── Render ─────────
   return (
-    <div className="sm:w-full md:w-1/2 lg:w-1/4 p-2 relative">
+    <div
+      className="sm:w-full md:w-1/2 lg:w-1/4 p-2 relative"
+      style={{ width: "320px", height: "450px" }}
+    >
       {/* Wishlist Heart */}
       <button
         onClick={handleWishlistClick}
@@ -82,8 +84,9 @@ function ProductCard({ product }) {
           }`}
         />
       </button>
-       <div className="w-full h-full">
-      <div className="product relative bg-white p-2 rounded-lg shadow-md">
+
+      {/* Card Content */}
+      <div className="product relative bg-white p-2 rounded-lg shadow-md h-full flex flex-col">
         <img
           src={product.product_pictures?.[0]?.secure_url}
           alt={product.name}
@@ -91,7 +94,9 @@ function ProductCard({ product }) {
         />
 
         <div className="flex justify-between items-center py-2">
-          <h3 className="text-main font-extrabold">{product.name}</h3>
+          <h3 className="text-main font-extrabold line-clamp-2">
+            {displayName}
+          </h3>
           <span className="flex text-yellow-500">
             {product.average_rating
               ? [...Array(Math.round(product.average_rating))].map((_, i) => (
@@ -102,7 +107,9 @@ function ProductCard({ product }) {
         </div>
 
         <div className="flex justify-between items-center py-2">
-          <span className="font-bold text-main">{product.price} EGP</span>
+          <span className="font-bold text-main">
+            {product.price.toFixed(2)} EGP
+          </span>
           <div className="px-2 flex items-center">
             <button
               onClick={decrement}
@@ -122,7 +129,7 @@ function ProductCard({ product }) {
 
         <button
           onClick={handleMoreDetails}
-          className="flex items-center justify-center w-full mb-2 py-2 text-gray-500 hover:text-blue-600 transition-colors"
+          className="flex items-center justify-center text-gray-500 hover:text-blue-600 transition-colors"
         >
           More Details
           <ChevronRight className="w-4 h-4 ml-1" />
@@ -130,12 +137,12 @@ function ProductCard({ product }) {
 
         <button
           onClick={handleAddToCart}
-          className="bg-main btn w-full rounded-lg px-3 py-2 text-white"
+          className="bg-main btn w-full rounded-lg px-3 py-2 text-white mt-auto"
         >
           Add to cart
         </button>
       </div>
-</div>
+
       {showPopup && (
         <div className="fixed top-15 right-5 w-72 bg-white border border-green-400 shadow-lg rounded-lg p-4 z-50">
           <h3 className="text-green-600 font-bold mb-2">Item Added to Cart</h3>
@@ -149,7 +156,7 @@ function ProductCard({ product }) {
               <span className="font-semibold">{product.name}</span>
               <span className="text-sm text-gray-600">Quantity: {count}</span>
               <span className="text-sm text-gray-600">
-                Total: {product.price * count} EGP
+                Total: {(product.price * count).toFixed(2)} EGP
               </span>
             </div>
           </div>

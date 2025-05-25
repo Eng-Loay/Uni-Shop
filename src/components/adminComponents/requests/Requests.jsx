@@ -1,62 +1,83 @@
-import { useEffect, useState } from "react";
+// src/components/Header/Navbar.jsx
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useRef } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import Swal from "sweetalert2";
 import axios from "axios";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const api = axios.create({
   baseURL: `${API_BASE_URL}api/v1/admin`,
   withCredentials: true,
 });
 
-const paginationModel = { page: 0, pageSize: 5 };
+export default function Requests() {
+  // ─── Responsive breakpoints ─────────────────────────────────────
+  const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down("sm"));
+  const isSm = useMediaQuery(theme.breakpoints.between("sm", "md"));
+  const isMd = useMediaQuery(theme.breakpoints.between("md", "lg"));
 
-function Requests() {
+  // ─── Data + loading + error ─────────────────────────────────────
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ─── Controlled pagination ──────────────────────────────────────
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: isXs ? 5 : isSm ? 7 : isMd ? 10 : 15,
+  });
+  // update pageSize when breakpoint changes
+  useEffect(() => {
+    setPaginationModel((prev) => ({
+      ...prev,
+      pageSize: isXs ? 5 : isSm ? 7 : isMd ? 10 : 15,
+    }));
+  }, [isXs, isSm, isMd]);
+
+  // ─── Fetch pending requests ─────────────────────────────────────
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await api.get("/pending/join_requests");
-
-        if (!response.data?.data) {
+        const list = response.data?.data;
+        if (!Array.isArray(list)) {
           throw new Error("Invalid data structure");
         }
-
-        const formatted = response.data.data.map((item) => ({
-          id: item._id || Math.random().toString(36).substr(2, 9),
+        const formatted = list.map((item) => ({
+          id: item._id,
           logo: item.logo?.secure_url || item.logo || "/default-logo.png",
           username: item.username || "Unknown",
-          _id: item._id,
         }));
-
         setData(formatted);
       } catch (err) {
         console.error("Fetch error:", err);
-        setError(err.message);
+        setError(err.message || "Unknown error");
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
+  // ─── Approve / decline handlers ─────────────────────────────────
   const sendDecision = async (id, status) => {
     try {
-      // Change to match your backend endpoint
       await api.delete("/update_library_status", {
         data: {
           id,
           status: status === "declined" ? "rejected" : status,
         },
       });
-      setData((prev) => prev.filter((item) => item.id !== id));
+      setData((prev) => prev.filter((row) => row.id !== id));
       Swal.fire("Success", `Request ${status}`, "success");
-    } catch (error) {
-      console.error(`Failed to ${status} request:`, error);
+    } catch (err) {
+      console.error(`Failed to ${status} request:`, err);
       Swal.fire("Error", `Failed to ${status} request.`, "error");
     }
   };
@@ -67,13 +88,12 @@ function Requests() {
       showCancelButton: true,
       confirmButtonText: `Yes, ${action} it!`,
       confirmButtonColor: action === "approved" ? "#66ff66" : "#d33",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        sendDecision(id, action);
-      }
+    }).then((res) => {
+      if (res.isConfirmed) sendDecision(id, action);
     });
   };
 
+  // ─── DataGrid columns ────────────────────────────────────────────
   const columns = [
     {
       field: "logo",
@@ -82,141 +102,143 @@ function Requests() {
       headerAlign: "center",
       align: "center",
       renderCell: (params) => (
-        <div
-          style={{
+        <Box
+          sx={{
             width: "100%",
-            height: "100%",
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
           }}
         >
-          <img
+          <Box
+            component="img"
             src={params.value}
             alt="Logo"
-            style={{
+            sx={{
               width: 60,
               height: 60,
               borderRadius: "50%",
               border: "1px solid #210876",
               objectFit: "cover",
-              marginRight: "16px",
             }}
           />
-        </div>
+        </Box>
       ),
     },
     {
       field: "username",
       headerName: "Username",
-      flex: 1,
+      flex: 2,
       align: "left",
       headerAlign: "left",
     },
     {
       field: "actions",
       headerName: "Actions",
-      flex: 2,
+      flex: 3,
+      headerAlign: "center",
+      align: "center",
+      sortable: false,
       renderCell: (params) => (
-        <div
-          style={{
+        <Box
+          sx={{
             display: "flex",
-            gap: 10,
-            alignItems: "center",
-            height: "100%",
+            gap: 1,
             justifyContent: "center",
             width: "100%",
           }}
         >
-          <div
+          <Box
             onClick={() => handleDecision(params.row.id, "declined")}
-            style={{
-              padding: "20px 30px",
+            sx={{
+              px: isXs ? 1 : 2,
+              py: isXs ? 0.5 : 1,
               border: "1px solid crimson",
               color: "crimson",
-              borderRadius: 5,
+              borderRadius: 1,
               cursor: "pointer",
-              height: "fit-content",
-              lineHeight: "normal",
+              typography: isXs ? "caption" : "body2",
+              textAlign: "center",
             }}
           >
             Decline
-          </div>
-          <div
+          </Box>
+          <Box
             onClick={() => handleDecision(params.row.id, "approved")}
-            style={{
-              padding: "20px 30px",
+            sx={{
+              px: isXs ? 1 : 2,
+              py: isXs ? 0.5 : 1,
               border: "1px solid green",
               color: "green",
-              borderRadius: 5,
+              borderRadius: 1,
               cursor: "pointer",
-              height: "fit-content",
-              lineHeight: "normal",
+              typography: isXs ? "caption" : "body2",
+              textAlign: "center",
             }}
           >
             Approve
-          </div>
-        </div>
+          </Box>
+        </Box>
       ),
     },
   ];
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!data.length) return <div>No requests found</div>;
+  // ─── Loading / error / empty states ──────────────────────────────
+  if (loading) return <Box sx={{ p: 2 }}>Loading...</Box>;
+  if (error)
+    return <Box sx={{ p: 2, color: "error.main" }}>Error: {error}</Box>;
+  if (!data.length)
+    return <Box sx={{ p: 2 }}>No pending join requests found.</Box>;
 
+  // ─── Render ──────────────────────────────────────────────────────
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         width: "100%",
-        height: "100%",
-        alignItems: "center",
-        justifyContent: "center",
+        minHeight: "100vh",
         display: "flex",
-        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        py: { xs: 2, sm: 4 },
+        px: { xs: 1, sm: 2 },
+        bgcolor: "background.default",
       }}
     >
       <Paper
         elevation={3}
         sx={{
-          width: "90%",
-          margin: "0 auto",
-          padding: 2,
-          minHeight: "400px",
-          flexGrow: 1,
-          justifyContent: "space-between",
-          flexDirection: "column",
-          display: "flex",
+          width: {
+            xs: "100%", // full width on mobile
+            sm: "90%", // 90% on small
+            md: "80%", // 80% on medium
+            lg: "60%", // 60% on large
+            xl: "50%", // 50% on extra-large
+          },
+          p: { xs: 1, sm: 2 },
         }}
       >
         <DataGrid
           rows={data}
           columns={columns}
-          columnHeaderHeight={0}
-          rowHeight={100}
-          initialState={{ pagination: { paginationModel } }}
-          pageSizeOptions={[5, 10]}
+          autoHeight // grow to fit content
+          pagination
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[5, 7, 10, 15]}
           sx={{
             border: 0,
             "& .MuiDataGrid-row": {
               boxShadow: 1,
               borderRadius: 2,
-              backgroundColor: "#fff",
+              backgroundColor: "background.paper",
               mb: 1,
-              mt: 2,
-              mx: 1,
-              px: 1,
             },
             "& .MuiDataGrid-footerContainer": {
-              position: "relative",
-              bottom: 0,
-              width: "100%",
+              justifyContent: "center",
+              px: { xs: 0, sm: 2 },
             },
           }}
         />
       </Paper>
-    </div>
+    </Box>
   );
 }
-
-export default Requests;
