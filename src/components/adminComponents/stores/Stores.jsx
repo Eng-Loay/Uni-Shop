@@ -24,12 +24,12 @@ export default function Stores() {
   // ─── pagination model (dynamic pageSize) ────────────────────────
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: isXs ? 3 : isSm ? 5 : isMd ? 8 : 12,
+    pageSize: isXs ? 5 : isSm ? 7 : isMd ? 10 : 15,
   });
   useEffect(() => {
     setPaginationModel((prev) => ({
       ...prev,
-      pageSize: isXs ? 3 : isSm ? 5 : isMd ? 8 : 12,
+      pageSize: isXs ? 5 : isSm ? 7 : isMd ? 10 : 15,
     }));
   }, [isXs, isSm, isMd]);
 
@@ -98,8 +98,7 @@ export default function Stores() {
     {
       field: "logo",
       headerName: "Logo",
-      flex: isXs ? 0.8 : 1,
-      minWidth: isXs ? 80 : 100,
+      flex: 1,
       headerAlign: "center",
       align: "center",
       renderCell: (params) => (
@@ -117,8 +116,8 @@ export default function Stores() {
             src={params.row.logo}
             alt="Library Logo"
             sx={{
-              width: isXs ? 40 : isSm ? 50 : 60,
-              height: isXs ? 40 : isSm ? 50 : 60,
+              width: 60,
+              height: 60,
               borderRadius: "50%",
               objectFit: "cover",
               border: "1px solid #210876",
@@ -131,8 +130,7 @@ export default function Stores() {
     {
       field: "username",
       headerName: "Username",
-      flex: isXs ? 1.5 : 2,
-      minWidth: isXs ? 120 : 150,
+      flex: 1,
       align: "left",
       headerAlign: "left",
     },
@@ -142,17 +140,15 @@ export default function Stores() {
     {
       field: "action",
       headerName: "Action",
-      flex: isXs ? 1 : 1.2,
-      minWidth: isXs ? 80 : 100,
-      headerAlign: "center",
-      align: "center",
+      flex: 2,
+      headerAlign: "right",
+      align: "right",
       sortable: false,
       renderCell: (params) => (
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
             width: "100%",
             height: "100%",
           }}
@@ -160,23 +156,16 @@ export default function Stores() {
           <Box
             onClick={() => handleDelete(params.row.id)}
             sx={{
-              px: isXs ? 0.8 : isSm ? 1.2 : 2,
-              py: isXs ? 0.4 : isSm ? 0.6 : 1,
+              px: isXs ? 1 : 2,
+              py: isXs ? 0.5 : 1,
               borderRadius: 1,
               color: "crimson",
               border: "1px solid crimson",
               cursor: "pointer",
-              fontSize: isXs ? "0.7rem" : isSm ? "0.8rem" : "0.875rem",
-              fontWeight: 500,
+              typography: isXs ? "caption" : "body2",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              minWidth: isXs ? 60 : 80,
-              transition: "all 0.2s ease",
-              "&:hover": {
-                backgroundColor: "crimson",
-                color: "white",
-              },
             }}
           >
             Delete
@@ -191,26 +180,23 @@ export default function Stores() {
     <Box
       sx={{
         width: "100%",
-        minHeight: "100vh",
-        py: { xs: 1, sm: 2, md: 4 },
-        px: { xs: 0.5, sm: 1, md: 2 },
+        py: { xs: 2, sm: 4 },
+        px: { xs: 1, sm: 2 },
         display: "flex",
         justifyContent: "center",
-        alignItems: "flex-start",
       }}
     >
       <Paper
         elevation={3}
         sx={{
           width: {
-            xs: "98%",
-            sm: "95%",
-            md: "85%",
-            lg: "70%",
-            xl: "60%",
+            xs: "100%", // full width on mobile
+            sm: "90%", // 90% on small
+            md: "80%", // 80% on medium
+            lg: "60%", // 60% on large
+            xl: "50%", // 50% on extra-large
           },
-          p: { xs: 0.5, sm: 1, md: 2 },
-          borderRadius: { xs: 1, sm: 2 },
+          p: { xs: 1, sm: 2 },
         }}
       >
         <DataGrid
@@ -220,34 +206,19 @@ export default function Stores() {
           pagination
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[3, 5, 8, 12]}
-          rowHeight={isXs ? 80 : isSm ? 90 : 100}
+          pageSizeOptions={[5, 7, 10, 15]}
+          rowHeight={isXs ? 100 : 120}
           loading={loading}
           sx={{
             border: 0,
-            "& .MuiDataGrid-root": {
-              fontSize: { xs: "0.75rem", sm: "0.875rem" },
-            },
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#f5f5f5",
-              fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.875rem" },
-              fontWeight: 600,
-            },
             "& .MuiDataGrid-row": {
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              borderRadius: { xs: 1, sm: 2 },
+              boxShadow: 1,
+              borderRadius: 2,
               backgroundColor: "#fff",
-              mb: 0.5,
-              "&:hover": {
-                backgroundColor: "#f9f9f9",
-              },
+              mb: 1,
             },
             "& .MuiDataGrid-footerContainer": {
               justifyContent: "center",
-              mt: { xs: 1, sm: 2 },
-            },
-            "& .MuiDataGrid-cell": {
-              borderBottom: "none",
             },
           }}
         />
