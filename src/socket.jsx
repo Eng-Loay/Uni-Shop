@@ -10,11 +10,6 @@ const API_URL = (
 ).replace(/\/$/, "");
 
 export const socket = io(API_URL, {
-  withCredentials: true,
-  transports: ["websocket"],
-  upgrade: true,
-  rememberUpgrade: true,
-  timeout: 20000,
-  forceNew: true,
-  secure: true
+  withCredentials: true, // if you’re sending cookies or need auth
+  transports: ["websocket"], // skip polling altogether
 });
