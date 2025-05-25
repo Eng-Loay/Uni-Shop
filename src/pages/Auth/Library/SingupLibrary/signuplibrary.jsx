@@ -99,8 +99,13 @@ function SignupLibrary() {
         formDataToSend.append("password", formData.password);
         formDataToSend.append("passwordConfirm", formData.passwordConfirm);
         formDataToSend.append("location", formData.location);
-        formDataToSend.append("license", formData.license); // Append license file
-        formDataToSend.append("logo", formData.logo); // Append logo file
+
+        if (formData.license) {
+          formDataToSend.append("license", formData.license);
+        }
+        if (formData.logo) {
+          formDataToSend.append("logo", formData.logo);
+        }
 
         // Make API call to the signup endpoint
         const response = await axios.post(
@@ -110,6 +115,7 @@ function SignupLibrary() {
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            withCredentials: true,
           }
         );
 
@@ -119,6 +125,7 @@ function SignupLibrary() {
         }
       } catch (error) {
         // Handle API errors
+        console.error("Full error:", error);
         if (error.response) {
           setErrorMessage(
             error.response.data.message ||
@@ -321,15 +328,15 @@ function SignupLibrary() {
                       passwordStrength < 50
                         ? "text-red-400"
                         : passwordStrength < 75
-                          ? "text-yellow-400"
-                          : "text-green-400"
+                        ? "text-yellow-400"
+                        : "text-green-400"
                     }
                   >
                     {passwordStrength < 50
                       ? "Weak"
                       : passwordStrength < 75
-                        ? "Medium"
-                        : "Strong"}
+                      ? "Medium"
+                      : "Strong"}
                   </span>
                 </p>
               </div>
