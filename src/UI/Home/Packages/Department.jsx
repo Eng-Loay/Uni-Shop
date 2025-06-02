@@ -1,13 +1,13 @@
-import { useParams } from "react-router-dom";
+// src/components/Department.jsx
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Heart, ChevronRight } from "lucide-react";
 import { FaStar } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../pages/Student/CartContext/CartContext";
 import { useWishlist } from "../../../pages/Student/WishListContext/WishListContext";
 
-function Department() {
+export default function Department() {
   const { departmentName } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +17,7 @@ function Department() {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
+  /* ────────────────────────── Fetch department products ───────────────────────── */
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -28,10 +29,11 @@ function Department() {
         );
         const productsData = data.data || [];
         setProducts(productsData);
-        // init quantities
+
+        // initialise quantity for each product to 1
         const initialQ = {};
-        productsData.forEach((prod) => {
-          initialQ[prod._id] = 1;
+        productsData.forEach((p) => {
+          initialQ[p._id] = 1;
         });
         setQuantities(initialQ);
       } catch (err) {
@@ -40,9 +42,11 @@ function Department() {
         setLoading(false);
       }
     };
+
     fetchProducts();
   }, [departmentName]);
 
+  /* ────────────────────────── Helpers ───────────────────────── */
   const handleQuantityChange = (productId, newQty) => {
     setQuantities((prev) => ({
       ...prev,
@@ -76,35 +80,41 @@ function Department() {
     }
   };
 
+  /* ────────────────────────── Render ───────────────────────── */
   return (
     <>
-      <div className="text-lg p-5 font-extrabold">
+      <div className="p-5 text-lg font-extrabold">
         {decodeURIComponent(departmentName)}
       </div>
 
       <div className="container mx-auto max-w-7xl px-4">
         {loading ? (
-          <p className="py-10 text-center text-gray-500">Loading products...</p>
+          <p className="py-10 text-center text-gray-500">Loading products…</p>
         ) : products.length === 0 ? (
           <p className="py-10 text-center text-gray-500">
             No products found in this department.
           </p>
         ) : (
-          <div className="flex flex-wrap justify-center gap-4">
+          /* ------------- GRID wrapper (equal-height cards) ------------- */
+          <div
+            className="grid gap-6
+                          sm:grid-cols-2
+                          md:grid-cols-3
+                          lg:grid-cols-4
+                          xl:grid-cols-5
+                          auto-rows-fr"
+          >
             {products.map((product) => {
               const qty = quantities[product._id] || 1;
               const displayName = product.name.split(" ").slice(0, 2).join(" ");
               const displayPrice = Number(product.price).toFixed(2);
 
               return (
-                <div
-                  key={product._id}
-                  className="sm:w-full md:w-1/2 lg:w-1/4 p-2 relative"
-                >
-                  {/* Wishlist Heart */}
+                <div key={product._id} className="relative p-2">
+                  {/* ────── Wishlist Heart ────── */}
                   <button
                     onClick={() => handleWishlistClick(product)}
-                    className="absolute top-3 right-3 z-10 p-1 rounded-full bg-white shadow"
+                    className="absolute right-3 top-3 z-10 rounded-full bg-white p-1 shadow"
                     aria-label={
                       isInWishlist(product._id)
                         ? "Remove from wishlist"
@@ -112,7 +122,7 @@ function Department() {
                     }
                   >
                     <Heart
-                      className={`w-6 h-6 ${
+                      className={`h-6 w-6 ${
                         isInWishlist(product._id)
                           ? "fill-red-500 text-red-500"
                           : "text-gray-400 hover:text-red-500"
@@ -120,16 +130,23 @@ function Department() {
                     />
                   </button>
 
-                  <div className="product relative bg-white p-2 rounded-lg shadow-md h-full flex flex-col">
-                    <img
-                      src={product.product_pictures?.[0]?.secure_url}
-                      alt={product.name}
-                      className="w-full h-48 object-cover rounded cursor-pointer"
-                      onClick={() => navigate(`/productdetails/${product._id}`)}
-                    />
+                  {/* ────── Card ────── */}
+                  <div className="group flex h-full min-h-[420px] flex-col overflow-hidden rounded-lg bg-white p-2 shadow">
+                    {/* Image: fixed 1-to-1 box */}
+                    <div className="aspect-square overflow-hidden">
+                      <img
+                        src={product.product_pictures?.[0]?.secure_url}
+                        alt={product.name}
+                        className="h-full w-full cursor-pointer object-cover transition-transform group-hover:scale-105"
+                        onClick={() =>
+                          navigate(`/productdetails/${product._id}`)
+                        }
+                      />
+                    </div>
 
-                    <div className="flex justify-between items-center py-2">
-                      <h3 className="text-main font-extrabold line-clamp-2">
+                    {/* Title + rating */}
+                    <div className="flex items-center justify-between py-2">
+                      <h3 className="line-clamp-2 min-h-[3rem] font-extrabold text-main">
                         {displayName}
                       </h3>
                       <span className="flex text-yellow-500">
@@ -141,51 +158,60 @@ function Department() {
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center py-2">
+                    {/* Price + qty selector */}
+                    <div className="flex items-center justify-between py-2">
                       <span className="font-bold text-main">
                         {displayPrice} EGP
                       </span>
+
                       <div className="flex items-center">
+                        {/* – button */}
                         <button
                           onClick={() =>
                             handleQuantityChange(product._id, qty - 1)
                           }
                           disabled={qty <= 1}
-                          className={`px-3 py-1 bg-gray-300 rounded ${
+                          className={`rounded px-3 py-1 ${
                             qty <= 1
-                              ? "cursor-not-allowed opacity-50"
-                              : "cursor-pointer"
+                              ? "cursor-not-allowed bg-gray-300 opacity-50"
+                              : "cursor-pointer bg-gray-300"
                           }`}
                         >
-                          -
+                          −
                         </button>
+
                         <span className="px-2 text-main">{qty}</span>
+
+                        {/* + button */}
                         <button
                           onClick={() =>
                             handleQuantityChange(product._id, qty + 1)
                           }
-                          className="px-3 py-1 bg-gray-300 rounded cursor-pointer"
+                          className="cursor-pointer rounded bg-gray-300 px-3 py-1"
                         >
                           +
                         </button>
                       </div>
                     </div>
 
+                    {/* More details */}
                     <button
                       onClick={() => navigate(`/productdetails/${product._id}`)}
-                      className="flex items-center justify-center w-full mb-2 py-2 text-gray-500 hover:text-blue-600 cursor-pointer transition-colors"
+                      className="mb-2 flex w-full items-center justify-center py-2 text-gray-500 transition-colors hover:text-blue-600"
                     >
                       More Details
-                      <ChevronRight className="w-4 h-4 ml-1" />
+                      <ChevronRight className="ml-1 h-4 w-4" />
                     </button>
 
+                    {/* Add to Cart */}
                     <button
                       onClick={() => handleAddToCart(product)}
-                      className="bg-main btn w-full rounded-lg px-3 py-2 text-white cursor-pointer hover:bg-main-dark transition-colors mt-auto"
+                      className="btn mt-auto w-full rounded-lg bg-main px-3 py-2 text-white transition-colors hover:bg-main-dark"
                     >
                       Add to cart
                     </button>
                   </div>
+                  {/* End card */}
                 </div>
               );
             })}
@@ -195,5 +221,3 @@ function Department() {
     </>
   );
 }
-
-export default Department;
