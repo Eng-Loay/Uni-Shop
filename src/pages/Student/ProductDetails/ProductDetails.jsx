@@ -12,11 +12,12 @@ import Loader from "../../../components/Loader/Loader";
 import { useCart } from "../CartContext/CartContext";
 import ProductCard from "../ProductCard/ProductCard";
 
+/* ───────────────── env helpers ───────────────── */
 const raw = import.meta.env.VITE_API_URL || "";
 const API_BASE_URL = raw.endsWith("/") ? raw : `${raw}/`;
 const CHAT_API_URL = import.meta.env.VITE_RECOMENDTION_API_URL;
 
-/* ───────────────── helpers ───────────────── */
+/* ───────────────── ui helpers ───────────────── */
 const safeStars = (n = 0) =>
   Array.from({ length: Math.max(0, Math.min(5, Math.round(Number(n) || 0))) });
 
@@ -35,7 +36,7 @@ export default function ProductDetails() {
   /* ───── state ───── */
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
+  const [recProducts, setRecProducts] = useState([]); // always 4 cards
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,7 +58,7 @@ export default function ProductDetails() {
     setReviews(extractReviews(res.data));
   };
 
-  /* initial load */
+  /* ───── initial load ───── */
   useEffect(() => {
     setLoading(true);
     refreshProduct()
@@ -65,13 +66,54 @@ export default function ProductDetails() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  /* recommendations */
+  /* ───── recommendations: ensure exactly 4 cards ───── */
   useEffect(() => {
     if (!product?._id) return;
-    axios
-      .post(`${CHAT_API_URL}recommend`, { id: product.id, top_n: 4 })
-      .then((r) => setRecommendations(r.data || []))
-      .catch(() => toast.error("Recommendation service unavailable"));
+
+    const fetchRecs = async () => {
+      try {
+        /* 1️⃣ Ask recommender for four items */
+        const { data: rawRecs = [] } = await axios.post(
+          `${CHAT_API_URL}recommend`,
+          { id: product.id || product._id, top_n: 4 }
+        );
+
+        /* 2️⃣ Translate each public id -> real _id, fallback to public id on error */
+        const enriched = await Promise.all(
+          rawRecs.map(async (r) => {
+            let resolvedId = null;
+            try {
+              const mapRes = await axios.get(
+                `${API_BASE_URL}api/v1/product/${r.id}`
+              );
+              resolvedId = mapRes.data?.product_id || null;
+            } catch {
+              /* keep resolvedId null, we'll fallback below */
+            }
+
+            return {
+              _id: resolvedId || r.id, // always defined
+              name: r.product,
+              price: r.price,
+              average_rating: r.rating,
+              in_stock: !r.is_out_of_stock,
+              product_pictures: [{ secure_url: r.image }],
+            };
+          })
+        );
+
+        /* 3️⃣ Guarantee array length = 4 (duplicate first if recommender returns <4) */
+        while (enriched.length < 4 && enriched.length > 0) {
+          enriched.push({ ...enriched[0], _id: `${enriched[0]._id}-dup` });
+        }
+
+        setRecProducts(enriched.slice(0, 4));
+      } catch {
+        toast.error("Recommendation service unavailable");
+      }
+    };
+
+    fetchRecs();
   }, [product]);
 
   /* ───── cart ───── */
@@ -90,7 +132,7 @@ export default function ProductDetails() {
     }
   };
 
-  /* ───── review: ADD ───── */
+  /* ───── review CRUD ───── */
   const addReview = async (e) => {
     e.preventDefault();
     if (!newRating || !newComment.trim()) {
@@ -112,7 +154,6 @@ export default function ProductDetails() {
     }
   };
 
-  /* ───── review: DELETE ───── */
   const deleteReview = async (reviewId) => {
     const { isConfirmed } = await Swal.fire({
       title: "Delete review?",
@@ -136,7 +177,6 @@ export default function ProductDetails() {
     }
   };
 
-  /* ───── review: UPDATE ───── */
   const updateReview = async (reviewId, currentRating, currentComment) => {
     const { value: form } = await Swal.fire({
       title: "Edit your review",
@@ -176,7 +216,7 @@ export default function ProductDetails() {
     }
   };
 
-  /* guards */
+  /* ───── guards ───── */
   if (loading) return <Loader />;
   if (error)
     return (
@@ -186,28 +226,19 @@ export default function ProductDetails() {
     );
   if (!product) return <p className="text-center">Item not found.</p>;
 
-  /* ───── derived ───── */
+  /* ───── derived data ───── */
   const imgs = product.product_pictures?.map((p) => p.secure_url) || [];
   const mainImg = imgs[selectedImageIndex];
 
-  const adaptedRecs = (recommendations || []).map((r) => ({
-    _id: r.id?.toString(),
-    name: r.product,
-    price: r.price,
-    average_rating: r.rating,
-    in_stock: !r.is_out_of_stock,
-    product_pictures: [{ secure_url: r.image }],
-  }));
-
   const orderedReviews = [
-    /* mine first */
+    // mine first
     ...reviews.filter(
       (r) =>
         (
           r.user?._id ||
           r.user?.id ||
-          r.user ||
           r.user?.uid ||
+          r.user ||
           ""
         ).toString() === currentUserId
     ),
@@ -216,14 +247,13 @@ export default function ProductDetails() {
         (
           r.user?._id ||
           r.user?.id ||
-          r.user ||
           r.user?.uid ||
+          r.user ||
           ""
         ).toString() !== currentUserId
     ),
   ];
 
-  /* rating summary */
   const totalReviews = reviews.length;
   const averageRating = totalReviews
     ? (
@@ -361,19 +391,20 @@ export default function ProductDetails() {
         </div>
       )}
 
-      {/* recommendations */}
-      {adaptedRecs.length > 0 && (
+      {/* ───── recommendations ───── */}
+      {recProducts.length > 0 && (
         <section className="mt-16">
           <h2 className="text-xl font-semibold mb-4">You Might Also Need</h2>
-          <div className="flex flex-wrap -m-2">
-            {adaptedRecs.map((p) => (
+          {/* fixed 4-column layout on large screens */}
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {recProducts.map((p) => (
               <ProductCard key={p._id} product={p} />
             ))}
           </div>
         </section>
       )}
 
-      {/* reviews + rating summary */}
+      {/* ───── reviews + summary ───── */}
       <section className="mt-16">
         {/* rating summary */}
         {totalReviews === 0 ? (

@@ -62,19 +62,18 @@ export default function HomeStudent() {
     <>
       <div className="text-lg p-5 font-extrabold">Products you may like</div>
 
-      <div className="container mx-auto max-w-7xl">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8">
         {visible.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
             No products match “{query}”
           </div>
         ) : (
-          <div className="flex flex-wrap ">
+          <div className="flex flex-wrap justify-center sm:justify-start gap-6">
             {visible.map((p) => (
               <ProductCard key={p._id} product={p} />
             ))}
           </div>
         )}
-
         {/* ---------- pager ---------- */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-6 my-10 select-none">
