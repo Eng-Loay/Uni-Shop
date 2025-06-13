@@ -9,9 +9,12 @@ import empty from "../../../assets/empty/empty.png";
 import Loader from "../../../components/Loader/Loader";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useCart } from "../CartContext/CartContext"; // Add this import
 
 function Cart() {
   const navigate = useNavigate();
+  // Get the removeFromCart function from the cart context
+  const { removeFromCart, refreshCart } = useCart();
 
   /* ————————————————— ENV base URL ————————————————— */
   const raw = import.meta.env.VITE_API_URL || "";
@@ -76,6 +79,9 @@ function Cart() {
       try {
         await deleteItem(productId);
         setCartItems((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
+
+        // Update the global cart context to reflect the removal
+        removeFromCart(cartItemId);
       } catch (e) {
         console.error("Remove failed:", e);
         return;
@@ -88,6 +94,9 @@ function Cart() {
             i.cartItemId === cartItemId ? { ...i, quantity: newQty } : i
           )
         );
+
+        // Optionally refresh the global cart to ensure quantity is updated there too
+        refreshCart();
       } catch (e) {
         const msg = e.response?.data?.message;
         if (msg) {

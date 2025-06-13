@@ -42,7 +42,6 @@ import LevelProducts from "./pages/Student/LevelProducts/levelproducts.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import TestAuthGuard from "./components/TestAuthGuard/TestAuthGuard.jsx";
 
-
 import {
   AuthGuard,
   NoAuthGuard,
@@ -119,7 +118,7 @@ let x = createBrowserRouter([
           </AuthGuard>
         ),
       },
-       {
+      {
         path: "/department/:departmentName",
         element: (
           <AuthGuard allowedRoles={["student"]}>
@@ -232,7 +231,7 @@ let x = createBrowserRouter([
           { path: "items", element: <ItemsLibrary /> },
           { path: "items/additems", element: <AddItem /> },
           { path: "items/edititems/:id", element: <EditItem /> },
-           { path: "items/itemsdetails/:id", element: <ItemsDetails /> },
+          { path: "items/itemsdetails/:id", element: <ItemsDetails /> },
           {
             path: "orders",
             element: <OrderTable />,
@@ -269,15 +268,15 @@ let x = createBrowserRouter([
 
 function App() {
   return (
-    <ItemsProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <AuthProvider>
+    <AuthProvider>
+      <ItemsProvider>
+        <CartProvider>
+          <WishlistProvider>
             <RouterProvider router={x} />
-          </AuthProvider>
-        </WishlistProvider>
-      </CartProvider>
-    </ItemsProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </ItemsProvider>
+    </AuthProvider>
   );
 }
 
