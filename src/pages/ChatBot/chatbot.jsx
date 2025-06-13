@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/components/Chatbot.jsx
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
@@ -14,7 +15,6 @@ export default function Chatbot() {
   const [inputText, setInputText] = useState("");
   const endRef = useRef(null);
 
-  // Scroll to bottom whenever messages change
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -23,21 +23,16 @@ export default function Chatbot() {
     const trimmed = inputText.trim();
     if (!trimmed) return;
 
-    // Add the user's message
     setMessages((prev) => [...prev, { text: trimmed, sender: "user" }]);
     setInputText("");
 
     try {
-      // Call your backend
       const res = await axios.post(
         `${import.meta.env.VITE_CHAT_API_URL}api/chat`,
         { message: trimmed }
       );
 
-      // Extract the string reply
       const reply = res.data.message;
-
-      // Add the bot's reply
       setMessages((prev) => [...prev, { text: reply, sender: "bot" }]);
     } catch (err) {
       console.error(err);
@@ -70,16 +65,26 @@ export default function Chatbot() {
           {messages.map((m, i) => (
             <div
               key={i}
-              className={`
-                max-w-lg px-4 py-2 rounded-2xl
-                ${
-                  m.sender === "user"
-                    ? "bg-[#001F54] text-white self-end rounded-br-none"
-                    : "bg-gray-200 text-gray-800 self-start rounded-tl-none"
-                }
-              `}
+              className={`max-w-lg px-4 py-2 rounded-2xl ${
+                m.sender === "user"
+                  ? "bg-[#001F54] text-white self-end rounded-br-none"
+                  : "bg-gray-200 text-gray-800 self-start rounded-tl-none"
+              }`}
             >
-              <ReactMarkdown>{m.text}</ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  a: ({ node, ...props }) => (
+                    <a
+                      {...props}
+                      className="text-blue-600 underline hover:text-blue-800 font-semibold"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  ),
+                }}
+              >
+                {m.text}
+              </ReactMarkdown>
             </div>
           ))}
           <div ref={endRef} />
