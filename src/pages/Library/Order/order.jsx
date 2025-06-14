@@ -111,7 +111,9 @@ export default function OrderTable() {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_BASE_URL}api/v1/order/cancel/${orderId}`);
+        await axios.delete(`${API_BASE_URL}api/v1/order/cancel/${orderId}`, {
+          withCredentials: true,
+        });
         setOrders((prevOrders) =>
           prevOrders.filter((order) => order._id !== orderId)
         );
