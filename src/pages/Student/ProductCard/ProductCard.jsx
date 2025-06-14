@@ -3,35 +3,45 @@
 import { useState } from "react";
 import { Heart, ChevronRight } from "lucide-react";
 import { FaStar } from "react-icons/fa";
-import { useCart } from "../CartContext/CartContext";
 import { useNavigate } from "react-router-dom";
-import { useWishlist } from "../WishListContext/WishListContext";
 import axios from "axios";
 
+import { useCart } from "../CartContext/CartContext";
+import { useWishlist } from "../WishListContext/WishListContext";
+
+/* ───────────────── env helpers ───────────────── */
+const raw = import.meta.env.VITE_API_URL || "";
+const API_BASE_URL = raw.endsWith("/") ? raw : `${raw}/`;
+
+/* ───────────────── ui helpers ───────────────── */
+const safeStars = (n = 0) =>
+  Array.from({ length: Math.max(0, Math.min(5, Math.round(Number(n) || 0))) });
+
+/* ─────────────────────────────────────────────── */
+/*                   ProductCard                   */
+/* ─────────────────────────────────────────────── */
 function ProductCard({ product, wishlistIds, setWishlistIds }) {
   if (!product) return null;
 
-  /* ───────── hooks ───────── */
+  /* ───── hooks & helpers ───── */
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { toggleWishlist } = useWishlist(); /* no more isInWishlist */
+  const { toggleWishlist } = useWishlist();
 
+  /* local state */
   const [count, setCount] = useState(1);
   const [showPopup, setShowPopup] = useState(false);
 
-  /* helpers */
-  const raw = import.meta.env.VITE_API_URL || "";
-  const API_BASE_URL = raw.endsWith("/") ? raw : `${raw}/`;
-  const displayName = product.name.split(" ").slice(0, 2).join(" ");
+  /* derived data */
+  const wishlistArray = Array.isArray(wishlistIds) ? wishlistIds : [];
+  const isLiked = wishlistArray.includes(product._id);
+  const displayName = product.name?.split(" ").slice(0, 2).join(" ") || "";
 
-  /* liked based ONLY on parent list */
-  const isLiked = wishlistIds.includes(product._id);
-
-  /* ───────── quantity handlers ───────── */
+  /* ───── quantity handlers ───── */
   const increment = () => setCount((p) => p + 1);
   const decrement = () => setCount((p) => (p > 1 ? p - 1 : 1));
 
-  /* ───────── cart handler ───────── */
+  /* ───── cart handler ───── */
   const handleAddToCart = async () => {
     try {
       await axios.post(
@@ -47,9 +57,10 @@ function ProductCard({ product, wishlistIds, setWishlistIds }) {
     }
   };
 
-  /* ───────── wishlist handler ───────── */
+  /* ───── wishlist handler ───── */
   const handleWishlistClick = async () => {
-    const alreadyLiked = wishlistIds.includes(product._id);
+    const alreadyLiked = isLiked;
+
     try {
       await axios.patch(
         `${API_BASE_URL}api/v1/product/${product._id}/wishlist`,
@@ -57,30 +68,33 @@ function ProductCard({ product, wishlistIds, setWishlistIds }) {
         { withCredentials: true }
       );
 
-      /* update local list FIRST so UI flips instantly */
-      setWishlistIds((prev) =>
-        alreadyLiked
-          ? prev.filter((id) => id !== product._id)
-          : [...prev, product._id]
-      );
+      /* update parent state immediately if provided */
+      if (typeof setWishlistIds === "function") {
+        setWishlistIds((prev) => {
+          const list = Array.isArray(prev) ? prev : [];
+          return alreadyLiked
+            ? list.filter((id) => id !== product._id)
+            : [...list, product._id];
+        });
+      }
 
-      /* sync global context (adds or removes internally) */
+      /* keep global context in sync */
       toggleWishlist(product);
     } catch (err) {
       console.error("Toggle wishlist failed:", err);
     }
   };
 
-  /* ───────── details nav ───────── */
+  /* ───── navigation ───── */
   const handleMoreDetails = () => navigate(`/productdetails/${product._id}`);
 
-  /* ───────── render ───────── */
+  /* ───── render ───── */
   return (
     <div
       className="sm:w-full md:w-1/2 lg:w-1/4 p-2 relative"
       style={{ width: "320px", height: "450px" }}
     >
-      {/* Heart */}
+      {/* Heart icon */}
       <button
         onClick={handleWishlistClick}
         className="absolute top-3 right-3 z-10 p-1 rounded-full bg-white shadow"
@@ -95,7 +109,7 @@ function ProductCard({ product, wishlistIds, setWishlistIds }) {
         />
       </button>
 
-      {/* Card */}
+      {/* Card body */}
       <div className="product bg-white p-2 rounded-lg shadow-md h-full flex flex-col">
         <img
           src={product.product_pictures?.[0]?.secure_url}
@@ -109,7 +123,7 @@ function ProductCard({ product, wishlistIds, setWishlistIds }) {
           </h3>
           <span className="flex text-yellow-500">
             {product.average_rating
-              ? [...Array(Math.round(product.average_rating))].map((_, i) => (
+              ? safeStars(product.average_rating).map((_, i) => (
                   <FaStar key={i} />
                 ))
               : "No rating"}
@@ -118,7 +132,7 @@ function ProductCard({ product, wishlistIds, setWishlistIds }) {
 
         <div className="flex justify-between items-center py-2">
           <span className="font-bold text-main">
-            {product.price.toFixed(2)} EGP
+            {Number(product.price || 0).toFixed(2)} EGP
           </span>
           <div className="px-2 flex items-center">
             <button
@@ -155,7 +169,7 @@ function ProductCard({ product, wishlistIds, setWishlistIds }) {
 
       {/* Popup */}
       {showPopup && (
-        <div className="fixed top-15 right-5 w-72 bg-white border border-green-400 shadow-lg rounded-lg p-4 z-50">
+        <div className="fixed top-5 right-5 w-72 bg-white border border-green-400 shadow-lg rounded-lg p-4 z-50">
           <h3 className="text-green-600 font-bold mb-2">Item Added to Cart</h3>
           <div className="flex items-center space-x-3">
             <img
