@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useMemo } from "react";
 import {
   DataGrid,
@@ -46,13 +47,14 @@ export default function Requests() {
   const pageSz = isXs ? 5 : 10;
 
   const [rows, setRows] = useState([]);
-  const [loading, setL] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [paginationModel, setPaginationModel] = useState({
+  const [paginationModel, setPagModel] = useState({
     page: 0,
     pageSize: pageSz,
   });
 
+  /* ───── Fetch join requests on mount ───── */
   useEffect(() => {
     (async () => {
       try {
@@ -67,32 +69,37 @@ export default function Requests() {
       } catch (e) {
         setError(e.message || "Unknown error");
       } finally {
-        setL(false);
+        setLoading(false);
       }
     })();
   }, []);
 
+  /* ───── Handle approve / reject ───── */
   const decide = async (id, action) => {
+    const status = action; // action will be "approved" or "rejected"
     try {
-      await api.delete("/update_library_status", {
-        data: { id, status: action === "declined" ? "rejected" : action },
-      });
+      await axios.patch(
+        `${API_BASE_URL}api/v1/auth/admin/approve-library/${id}`,
+        { status },
+        { withCredentials: true }
+      );
       setRows((prev) => prev.filter((r) => r.id !== id));
-      Swal.fire("Done!", `Request ${action}.`, "success");
+      Swal.fire("Done!", `Request ${status}.`, "success");
     } catch {
-      Swal.fire("Error", `Could not ${action}.`, "error");
+      Swal.fire("Error", `Could not ${status}.`, "error");
     }
   };
 
   const confirm = (id, action) =>
     Swal.fire({
-      title: `${action === "approved" ? "Approve" : "Decline"} request?`,
+      title: `${action === "approved" ? "Approve" : "Reject"} request?`,
       icon: action === "approved" ? "success" : "warning",
       showCancelButton: true,
       confirmButtonText: `Yes, ${action}!`,
       confirmButtonColor: action === "approved" ? "#2e7d32" : "#c62828",
     }).then((res) => res.isConfirmed && decide(id, action));
 
+  /* ───── DataGrid columns ───── */
   const cols = useMemo(
     () =>
       [
@@ -140,7 +147,7 @@ export default function Requests() {
                 size="small"
                 variant="outlined"
                 color="error"
-                onClick={() => confirm(row.id, "declined")}
+                onClick={() => confirm(row.id, "rejected")}
                 sx={{
                   fontSize: "0.75rem",
                   py: 0.4,
@@ -148,7 +155,7 @@ export default function Requests() {
                   minWidth: "auto",
                 }}
               >
-                Decline
+                Reject
               </Button>
               <Button
                 fullWidth
@@ -172,11 +179,13 @@ export default function Requests() {
     [isXs]
   );
 
+  /* ───── Render states ───── */
   if (loading) return <Box sx={{ p: 2 }}>Loading…</Box>;
   if (error) return <Box sx={{ p: 2, color: "error.main" }}>{error}</Box>;
   if (!rows.length)
     return <Box sx={{ p: 2 }}>No pending join requests found.</Box>;
 
+  /* ───── Main UI ───── */
   return (
     <Box sx={{ height: "100vh", overflow: "hidden" }}>
       <Paper
@@ -199,7 +208,7 @@ export default function Requests() {
           domLayout="autoHeight"
           pagination
           paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
+          onPaginationModelChange={setPagModel}
           pageSizeOptions={[5, 10]}
           components={{ Pagination: BottomRightPagination }}
           density={isXs ? "compact" : "standard"}
