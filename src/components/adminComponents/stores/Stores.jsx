@@ -78,6 +78,7 @@ export default function Stores() {
       if (result.isConfirmed) {
         await api.delete("/update_library_status", {
           data: { _id: id },
+          withCredentials: true,
         });
         setData((prev) => prev.filter((row) => row.id !== id));
         Swal.fire("Deleted!", "The library has been deleted.", "success");
@@ -193,7 +194,7 @@ export default function Stores() {
       <Paper
         elevation={3}
         sx={{
-          flexGrow: 1, 
+          flexGrow: 1,
           display: "flex",
           flexDirection: "column",
           width: "clamp(320px, 95%, 1200px)",
@@ -212,7 +213,7 @@ export default function Stores() {
           loading={loading}
           disableRowSelectionOnClick
           sx={{
-            flexGrow: 1, 
+            flexGrow: 1,
             border: 0,
             "& .MuiDataGrid-row": {
               boxShadow: 1,
