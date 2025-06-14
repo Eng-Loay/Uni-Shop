@@ -12,7 +12,12 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 
-function AddCoupon({ open, onClose, onSubmit, initialData }) {
+function AddCoupon({
+  open,
+  onClose,
+  onSubmit,
+  initialData = { code: "", discount: "", expiresAt: "" },
+}) {
   const [formData, setFormData] = useState({
     code: "",
     discount: "",
@@ -29,14 +34,12 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
   const [existingCoupons, setExistingCoupons] = useState([]);
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-  // Get tomorrow's date in YYYY-MM-DD format
   const getTomorrow = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split("T")[0];
   };
 
-  // Load existing coupons when dialog opens
   useEffect(() => {
     if (open) {
       const fetchCoupons = async () => {
@@ -83,7 +86,7 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
     const selectedDate = new Date(dateString);
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0); // Reset time part for accurate comparison
+    tomorrow.setHours(0, 0, 0, 0);
 
     if (selectedDate < tomorrow) {
       setErrors((prev) => ({
@@ -110,7 +113,6 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
     }));
 
     if (name === "code") {
-      // Validate length first
       const lengthError = value.length < 4 || value.length > 12;
       setErrors((prev) => ({
         ...prev,
@@ -118,7 +120,6 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
         duplicateCode: false,
       }));
 
-      // Only check for duplicates if length is valid
       if (!lengthError && value.length >= 4) {
         setIsChecking(true);
         const exists = checkCodeExists(value);
@@ -134,7 +135,6 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
   };
 
   const handleSubmit = async () => {
-    // Check for empty fields
     const newErrors = {
       code:
         !formData.code || formData.code.length < 4 || formData.code.length > 12,
@@ -144,7 +144,6 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
       duplicateCode: errors.duplicateCode,
     };
 
-    // Validate date
     const isDateValid = validateDate(formData.expiresAt);
 
     setErrors(newErrors);
@@ -153,7 +152,6 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
       return;
     }
 
-    // Final duplicate check before submitting
     const exists = checkCodeExists(formData.code);
     if (exists) {
       setErrors((prev) => ({
@@ -221,7 +219,7 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
             required
             fullWidth
             inputProps={{
-              min: getTomorrow(), // Set min date to tomorrow
+              min: getTomorrow(),
             }}
           />
           <Button
@@ -232,16 +230,16 @@ function AddCoupon({ open, onClose, onSubmit, initialData }) {
             disabled={isChecking}
             sx={{
               width: {
-                xs: "100%", // Full width on mobile
-                sm: "300px", // 300px on tablets
-                md: "250px", // 250px on desktop
+                xs: "100%",
+                sm: "300px",
+                md: "250px",
               },
-              minWidth: "120px", // Minimum width
-              alignSelf: "center", // Center horizontally
-              marginTop: 2, // Add some top margin
+              minWidth: "120px",
+              alignSelf: "center",
+              marginTop: 2,
               padding: {
-                xs: "8px 16px", // Smaller padding on mobile
-                sm: "10px 22px", // Larger padding on tablets+
+                xs: "8px 16px",
+                sm: "10px 22px",
               },
               "&:hover": {
                 transform: "scale(1.02)",
@@ -267,14 +265,6 @@ AddCoupon.propTypes = {
     discount: PropTypes.string,
     expiresAt: PropTypes.string,
   }),
-};
-
-AddCoupon.defaultProps = {
-  initialData: {
-    code: "",
-    discount: "",
-    expiresAt: "",
-  },
 };
 
 export default AddCoupon;
